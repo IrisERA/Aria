@@ -184,7 +184,7 @@ export default function App() {
               : (name || '?')[0].toUpperCase()}
           </button>
         </div>
-        {welcome && !panel && (
+        {welcome && !panel && auth.loaded && (
           <Welcome signedIn={!!auth.user} onClose={() => setWelcome(false)} onSignIn={() => openSettings('account')} />
         )}
         {panel && (
@@ -215,7 +215,7 @@ export default function App() {
 
       </>)}
 
-      {authReady && !auth.user && !guestNoteHidden && titles.length > 0 && (
+      {authReady && auth.loaded && !auth.user && !guestNoteHidden && titles.length > 0 && (
         <div className="guestnote" role="note">
           <span>You're using ARIA without an account. Your list is only saved on this device.</span>
           <div className="row">

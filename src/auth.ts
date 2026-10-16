@@ -82,6 +82,8 @@ function toProfile(u: User | null | undefined): Profile | null {
 
 export function useAuth() {
   const [user, setUser] = useState<Profile | null>(null);
+  // False until the saved sign-in has been checked, so ARIA doesn't ask a signed-in person to sign in.
+  const [loaded, setLoaded] = useState(!supabase);
   const [error, setError] = useState('');
   // Which providers are switched on in the Supabase dashboard (null = not checked yet).
   const [enabled, setEnabled] = useState<Record<Provider, boolean> | null>(null);
@@ -92,7 +94,10 @@ export function useAuth() {
       .then((r) => r.json())
       .then((s) => setEnabled({ google: !!s.external?.google, github: !!s.external?.github }))
       .catch(() => {});
-    supabase.auth.getSession().then(({ data }) => setUser(toProfile(data.session?.user)));
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(toProfile(data.session?.user));
+      setLoaded(true);
+    });
     const { data } = supabase.auth.onAuthStateChange((_e, session) => setUser(toProfile(session?.user)));
     return () => data.subscription.unsubscribe();
   }, []);
@@ -108,5 +113,5 @@ export function useAuth() {
     if (error) setError("Couldn't sign in. Please try again.");
   }
 
-  return { user, error, setError, enabled, signIn, signOut: async () => { await supabase?.auth.signOut(); } };
+  return { user, loaded, error, setError, enabled, signIn, signOut: async () => { await supabase?.auth.signOut(); } };
 }
