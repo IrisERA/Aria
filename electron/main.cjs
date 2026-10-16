@@ -1,7 +1,8 @@
 // ARIA desktop app (Windows / macOS / Linux) built with Electron.
 // The app's built web files (dist/) are served from a small local server on a fixed
 // address, so sign-in and saved data work the same as on the website.
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, dialog, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -35,6 +36,61 @@ function serve() {
 const POPUP_HOSTS = ['accounts.google.com'];
 const IN_APP_HOSTS = ['github.com', 'accounts.google.com', 'rahvvxklhrfuenvtwfty.supabase.co', 'localhost'];
 
+/*
+ * Updates: on start (and every few hours) ARIA checks the latest GitHub release.
+ * If there's a newer version it asks; nothing downloads or installs unless the user says yes.
+ * A release needs ARIA-Setup-x.y.z.exe, its .blockmap and latest.yml attached.
+ */
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = false;
+let skipped = null; // a version the user said "Not now" to during this session
+
+function setupUpdates(win) {
+  if (!app.isPackaged) return;
+
+  autoUpdater.on('update-available', async (info) => {
+    if (skipped === info.version) return;
+    const { response } = await dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Update available',
+      message: `ARIA ${info.version} is available`,
+      detail: `You have ${app.getVersion()}. Update now? It only takes a moment and your list stays as it is.`,
+      buttons: ['Update now', 'Not now'],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (response === 0) {
+      win.setProgressBar(0.01);
+      autoUpdater.downloadUpdate().catch(() => win.setProgressBar(-1));
+    } else {
+      skipped = info.version;
+    }
+  });
+
+  autoUpdater.on('download-progress', (p) => win.setProgressBar(p.percent / 100));
+
+  autoUpdater.on('update-downloaded', async (info) => {
+    win.setProgressBar(-1);
+    const { response } = await dialog.showMessageBox(win, {
+      type: 'info',
+      title: 'Update ready',
+      message: `ARIA ${info.version} is ready`,
+      detail: 'Restart ARIA to finish updating.',
+      buttons: ['Restart now', 'Later'],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (response === 0) autoUpdater.quitAndInstall();
+    else autoUpdater.autoInstallOnAppQuit = true; // installs next time ARIA is closed
+  });
+
+  autoUpdater.on('error', () => win.setProgressBar(-1)); // offline etc.: try again later
+
+  const check = () => autoUpdater.checkForUpdates().catch(() => {});
+  setTimeout(check, 5000);
+  setInterval(check, 4 * 60 * 60 * 1000);
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1400,
@@ -67,6 +123,7 @@ function createWindow() {
   });
 
   win.loadURL(ORIGIN);
+  setupUpdates(win);
 }
 
 // Only one ARIA window at a time; opening it again focuses the existing one.
