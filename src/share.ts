@@ -40,13 +40,21 @@ function newId() {
   return [...bytes].map((b) => chars[b % chars.length]).join('');
 }
 
+// Only plain details go into a shared list, with sensible size limits; posters must be https images.
 const clean = (items: SharedItem[]): SharedItem[] =>
-  items.map(({ name, kind, year, poster, genres, rating }) => ({ name, kind, year, poster, genres, rating }));
+  items.slice(0, 1000).map(({ name, kind, year, poster, genres, rating }) => ({
+    name: String(name).slice(0, 200),
+    kind: kind === 'series' ? 'series' : 'movie',
+    year: year ? String(year).slice(0, 4) : undefined,
+    poster: poster && /^https:\/\//.test(poster) ? poster.slice(0, 500) : undefined,
+    genres: genres?.slice(0, 5).map((g) => String(g).slice(0, 30)),
+    rating: typeof rating === 'number' ? Math.min(5, Math.max(0.5, rating)) : undefined,
+  }));
 
 // Creates the share (or updates it if `id` is given) and returns its link code.
 export async function publishShare(id: string | undefined, title: string, ownerName: string, items: SharedItem[]): Promise<string> {
   if (!supabase) throw new Error('Sign-in is not set up');
-  const row = { title, owner_name: ownerName || null, items: clean(items), updated_at: new Date().toISOString() };
+  const row = { title: title.slice(0, 120), owner_name: ownerName ? ownerName.slice(0, 60) : null, items: clean(items), updated_at: new Date().toISOString() };
   if (id) {
     const { data, error } = await supabase.from('shared_lists').update(row).eq('id', id).select('id');
     if (error) throw error;

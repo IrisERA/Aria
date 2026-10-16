@@ -55,7 +55,7 @@ export default function SharedView({ id, onWant, alreadyHave }: {
               <li key={i} className="item">
                 <div className="itemrow">
                   <span className="num">#{i + 1}</span>
-                  {t.poster ? <img src={t.poster} alt="" /> : <div className="noposter">🎬</div>}
+                  {t.poster && /^https:\/\//.test(t.poster) ? <img src={t.poster} alt="" referrerPolicy="no-referrer" /> : <div className="noposter">🎬</div>}
                   <div className="info">
                     <strong>{t.name}</strong>
                     <span className="hint">
