@@ -12,6 +12,7 @@ import { greeting } from './greeting';
 import { funFacts } from './facts';
 import Welcome, { hasSeenWelcome } from './Welcome';
 import SharePanel from './SharePanel';
+import InstallButton from './InstallButton';
 import SharedView from './SharedView';
 import { sharedIdFromPath } from './share';
 import { hasGenre, useGenreBackfill } from './genres';
@@ -164,6 +165,7 @@ export default function App() {
             <span className="hello">{greet.hello}</span>
             <span className="line">{hello.line}</span>
           </p>
+          <InstallButton />
         </div>
         <div className="corner">
           <button className="icon" aria-label="Settings" onClick={() => openSettings(lastSection)}>⚙</button>

@@ -46,7 +46,8 @@ autoUpdater.autoInstallOnAppQuit = false;
 let skipped = null; // a version the user said "Not now" to during this session
 
 function setupUpdates(win) {
-  if (!app.isPackaged) return;
+  // Microsoft Store copies are updated by the Store itself.
+  if (!app.isPackaged || process.windowsStore) return;
 
   autoUpdater.on('update-available', async (info) => {
     if (skipped === info.version) return;
