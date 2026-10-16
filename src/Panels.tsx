@@ -1,27 +1,29 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ACCENTS, defaults, SIZE_LABELS, type Settings, type StartTab, type Theme } from './settings';
 import { authReady, googleButtonReady, renderGoogleButton, type useAuth } from './auth';
 import type { SyncState } from './sync';
 import type { Deleted } from './store';
 import EnterInput from './EnterInput';
+import InstallButton from './InstallButton';
 
-export type Section = 'account' | 'customise' | 'lists' | 'notifications' | 'data' | 'about';
+export type Section = 'account' | 'customise' | 'lists' | 'notifications' | 'app' | 'data' | 'about';
 
 const SECTIONS: { id: Section; label: string; icon: string }[] = [
-  { id: 'account', label: 'Account', icon: 'ðŸ‘¤' },
-  { id: 'customise', label: 'Customise', icon: 'ðŸŽ¨' },
-  { id: 'lists', label: 'Lists & sorting', icon: 'ðŸ“‹' },
-  { id: 'notifications', label: 'Notifications', icon: 'ðŸ””' },
-  { id: 'data', label: 'Privacy & data', icon: 'ðŸ”’' },
-  { id: 'about', label: 'About', icon: 'â„¹ï¸' },
+  { id: 'account', label: 'Account', icon: '👤' },
+  { id: 'customise', label: 'Customise', icon: '🎨' },
+  { id: 'lists', label: 'Lists & sorting', icon: '📋' },
+  { id: 'notifications', label: 'Notifications', icon: '🔔' },
+  { id: 'app', label: 'Get the app', icon: '📲' },
+  { id: 'data', label: 'Privacy & data', icon: '🔒' },
+  { id: 'about', label: 'About', icon: 'ℹ️' },
 ];
 
 type Update = (p: Partial<Settings>) => void;
 type Trash = { deleted: Deleted[]; restore: (ids: string[]) => void; purge: (ids?: string[]) => void };
 
 const SYNC_LABEL: Record<SyncState, string> = {
-  off: 'Off', syncing: 'Savingâ€¦', synced: 'âœ“ On', offline: 'Offline', 'needs-setup': 'Setup needed',
+  off: 'Off', syncing: 'Saving…', synced: '✓ On', offline: 'Offline', 'needs-setup': 'Setup needed',
 };
 const SYNC_HINT: Record<SyncState, string> = {
   off: 'Sign in and your titles, lists and settings follow you to every device.',
@@ -76,14 +78,14 @@ function Account({ settings, update, stats, auth, sync }: {
         : <div className="avatar big">{(name || '?')[0].toUpperCase()}</div>}
       <div>
         <b>{name || 'Guest'}</b>
-        <p className="hint">{user ? (user.email || 'Signed in') : 'Not signed in'} Â· {stats.titles} titles Â· {stats.total} watches</p>
+        <p className="hint">{user ? (user.email || 'Signed in') : 'Not signed in'} · {stats.titles} titles · {stats.total} watches</p>
       </div>
     </div>
     <Row label="Display name" hint={user ? 'Press Enter to save. Leave empty to use your sign-in name.' : 'Press Enter to save.'}>
       <EnterInput id="acct-name" value={settings.name} allowEmpty onSave={(name) => update({ name })} placeholder={user?.name || 'Your name'} />
     </Row>
     {user ? (
-      <Row label="Signed in" hint={`${user.email ?? ''} Â· Signing out removes your list from this device. It stays safe in your account.`}>
+      <Row label="Signed in" hint={`${user.email ?? ''} · Signing out removes your list from this device. It stays safe in your account.`}>
         <button onClick={signOut}>Sign out</button>
       </Row>
     ) : (
@@ -142,7 +144,7 @@ function Customise({ settings, update }: { settings: Settings; update: Update })
     <Toggle checked={settings.showPosters} onChange={(v) => update({ showPosters: v })} label="Show posters" />
     <Toggle checked={settings.compact} onChange={(v) => update({ compact: v })} label="Compact list" hint="Hide descriptions so more titles fit." />
     <Toggle checked={settings.showStats} onChange={(v) => update({ showStats: v })} label="Show stats" />
-    <Toggle checked={settings.groupColors} onChange={(v) => update({ groupColors: v })} label="Colour series groups" hint="Used by the Aâ€“Z sort." />
+    <Toggle checked={settings.groupColors} onChange={(v) => update({ groupColors: v })} label="Colour series groups" hint="Used by the A–Z sort." />
     {settings.groupColors && (
       <div className="colorgrid">
         {SIZE_LABELS.map((label, i) => (
@@ -169,15 +171,15 @@ function ListSettings({ settings, update }: { settings: Settings; update: Update
         <option value="all">All</option>
         <option value="movie">Movies</option>
         <option value="series">Series</option>
-        <option value="favorites">â˜… Favorites</option>
-        <option value="want">ðŸ¿ Watchlist</option>
-        <option value="lists">ðŸ“ My lists</option>
+        <option value="favorites">★ Favorites</option>
+        <option value="want">🍿 Watchlist</option>
+        <option value="lists">📝 My lists</option>
       </select>
     </Row>
     <Row label="Sort All by">
       <select value={settings.sort} onChange={(e) => update({ sort: e.target.value as Settings['sort'] })}>
         <option value="mine">My order</option>
-        <option value="az">Aâ€“Z, series together</option>
+        <option value="az">A–Z, series together</option>
         <option value="genre">By genre</option>
       </select>
     </Row>
@@ -187,6 +189,32 @@ function ListSettings({ settings, update }: { settings: Settings; update: Update
       </select>
     </Row>
     <Toggle checked={false} label="Episode tracking for series" hint="Tick off seasons and episodes, see what's up next." soon />
+  </>);
+}
+
+function GetApp() {
+  return (<>
+    <p className="hint">Install ARIA so it opens in its own window with its own icon, like any other app. It's free, takes a few seconds, and always stays up to date.</p>
+    <div className="setting column">
+      <span className="setting-text">
+        <span>This device</span>
+        <span className="hint">Computer, Android phone or tablet. On iPhone and iPad it shows you how.</span>
+      </span>
+      <InstallButton big />
+    </div>
+    <div className="setting column">
+      <span className="setting-text">
+        <span>Other devices</span>
+        <span className="hint">Open <b>aria-fawn-seven.vercel.app</b> on your phone or another computer and tap "Install ARIA". Sign in with the same account and your lists come with you.</span>
+      </span>
+    </div>
+    <div className="setting column">
+      <span className="setting-text">
+        <span>Windows desktop app (download)</span>
+        <span className="hint">A separate download from GitHub. Windows may warn you because it isn't signed yet; the install above has no warnings.</span>
+      </span>
+      <a className="linkbtn" href="https://github.com/IrisERA/Aria/releases/latest" target="_blank" rel="noopener">Open downloads ›</a>
+    </div>
   </>);
 }
 
@@ -240,7 +268,7 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
             <li key={d.title.id}>
               <span className="trash-name">
                 <b>{d.title.name}</b>
-                <span className="hint">{d.title.kind === 'movie' ? 'Movie' : 'Series'}{d.title.year && ` Â· ${d.title.year}`} Â· removed {new Date(d.at).toLocaleDateString()}</span>
+                <span className="hint">{d.title.kind === 'movie' ? 'Movie' : 'Series'}{d.title.year && ` · ${d.title.year}`} · removed {new Date(d.at).toLocaleDateString()}</span>
               </span>
               <button onClick={() => trash.restore([d.title.id])}>Restore</button>
             </li>
@@ -277,20 +305,20 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
 
 function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
-    <p className="about"><b>ARIA</b> Â· version 1.0.5</p>
+    <p className="about"><b>ARIA</b> · version 1.0.6</p>
     <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
     <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
     <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">
       <button onClick={onShowWelcome}>Show again</button>
     </Row>
     <Row label="Help & feedback" hint="aria.app.help@protonmail.com">
-      <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Email us â€º</a>
+      <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Email us ›</a>
     </Row>
     <Row label="Terms of Service">
-      <a className="linkbtn" href="/terms.html" target="_blank" rel="noopener">Read â€º</a>
+      <a className="linkbtn" href="/terms.html" target="_blank" rel="noopener">Read ›</a>
     </Row>
     <Row label="Privacy Policy">
-      <a className="linkbtn" href="/privacy.html" target="_blank" rel="noopener">Read â€º</a>
+      <a className="linkbtn" href="/privacy.html" target="_blank" rel="noopener">Read ›</a>
     </Row>
   </>);
 }
@@ -314,7 +342,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Settings">
         <header className="sheet-head">
           <h2>Settings</h2>
-          <button className="icon" onClick={onClose} aria-label="Close">âœ•</button>
+          <button className="icon" onClick={onClose} aria-label="Close">✕</button>
         </header>
         <nav className="sheet-nav">
           {SECTIONS.map((s) => (
@@ -329,6 +357,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
           {section === 'customise' && <Customise settings={settings} update={update} />}
           {section === 'lists' && <ListSettings settings={settings} update={update} />}
           {section === 'notifications' && <Notifications />}
+          {section === 'app' && <GetApp />}
           {section === 'data' && <Data onClear={onClear} trash={trash} />}
           {section === 'about' && <About onShowWelcome={onShowWelcome} />}
         </div>
