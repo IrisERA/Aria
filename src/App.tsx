@@ -223,6 +223,9 @@ export default function App() {
           </button>
         ))}
       </div>
+      <footer className="sitefoot">
+        ARIA · free movie &amp; TV show tracker, no ads · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
+      </footer>
       </aside>
 
       <section className="content">

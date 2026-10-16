@@ -3,23 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Track the movies and series you love. Free, with zero ads." />
+    <title>ARIA: Free Movie &amp; TV Show Tracker with No Ads</title>
+    <meta name="description" content="ARIA is a free movie and TV series tracker with zero ads. Log what you've watched, rate it, keep a watchlist, make custom lists and share them with friends. Works on PC, Android and iPhone." />
+    <link rel="canonical" href="https://aria-fawn-seven.vercel.app/" />
     <meta name="theme-color" content="#16161d" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="ARIA" />
-    <title>ARIA</title>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta property="og:title" content="ARIA: track the movies and series you love" />
-    <meta property="og:description" content="Free, with zero ads. Make your own lists and share them with friends." />
+    <meta property="og:site_name" content="ARIA" />
+    <meta property="og:title" content="ARIA: free movie & TV show tracker, no ads" />
+    <meta property="og:description" content="Log what you watch, rate it, keep a watchlist and share your lists with friends. Free, with zero ads." />
+    <meta property="og:url" content="https://aria-fawn-seven.vercel.app/" />
     <meta property="og:image" content="https://aria-fawn-seven.vercel.app/icon-512.png" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "ARIA",
+        "alternateName": "ARIA Movie & TV Tracker",
+        "url": "https://aria-fawn-seven.vercel.app/",
+        "description": "A free movie and TV series tracker with zero ads. Log what you've watched, rate titles, keep a watchlist, build custom lists and share them.",
+        "applicationCategory": "EntertainmentApplication",
+        "operatingSystem": "Windows, Android, iOS, macOS, Web",
+        "image": "https://aria-fawn-seven.vercel.app/icon-512.png",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Person", "name": "IrisERA" }
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Shown for a moment while ARIA loads (and read by search engines). -->
+      <main class="card loading-intro">
+        <h1>ARIA: free movie &amp; TV show tracker</h1>
+        <p>Keep track of every movie and series you watch. Rate them from ½ to 5 stars, keep a watchlist, make your own lists and share them with friends. Free, with zero ads, on PC, Android and iPhone.</p>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
