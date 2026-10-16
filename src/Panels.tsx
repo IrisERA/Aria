@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Bell, Info, Palette, Shield, SlidersHorizontal, Smartphone, User, X, type LucideIcon } from 'lucide-react';
+import { ChevronDown, ChevronUp, LifeBuoy, Palette, Shield, SlidersHorizontal, Smartphone, User, X, type LucideIcon } from 'lucide-react';
+import Feedback from './Feedback';
 import { ACCENTS, defaults, SIZE_LABELS, type Settings, type StartTab, type Theme } from './settings';
 import { authReady, googleButtonReady, renderGoogleButton, type useAuth } from './auth';
 import type { SyncState } from './sync';
@@ -8,16 +9,15 @@ import type { Deleted } from './store';
 import EnterInput from './EnterInput';
 import InstallButton, { desktopAppVersion, isInstalled } from './InstallButton';
 
-export type Section = 'account' | 'customise' | 'lists' | 'notifications' | 'app' | 'data' | 'about';
+export type Section = 'account' | 'customise' | 'lists' | 'app' | 'data' | 'about';
 
 const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
   { id: 'account', label: 'Account', icon: User },
-  { id: 'customise', label: 'Customise', icon: Palette },
-  { id: 'lists', label: 'Lists & sorting', icon: SlidersHorizontal },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'customise', label: 'Appearance', icon: Palette },
+  { id: 'lists', label: 'Lists', icon: SlidersHorizontal },
   { id: 'app', label: 'Get the app', icon: Smartphone },
   { id: 'data', label: 'Privacy & data', icon: Shield },
-  { id: 'about', label: 'About', icon: Info },
+  { id: 'about', label: 'Help & feedback', icon: LifeBuoy },
 ];
 
 type Update = (p: Partial<Settings>) => void;
@@ -34,17 +34,15 @@ const SYNC_HINT: Record<SyncState, string> = {
   'needs-setup': 'The cloud storage table hasn\'t been created in Supabase yet.',
 };
 
-// A switch row. `soon` marks a setting that isn't built yet.
-function Toggle({ checked, onChange, label, hint, soon }: {
-  checked: boolean; onChange?: (v: boolean) => void; label: string; hint?: string; soon?: boolean;
-}) {
+// A switch row.
+function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
-    <label className={soon ? 'setting soon' : 'setting'}>
+    <label className="setting">
       <span className="setting-text">
-        <span>{label}{soon && <span className="soonpill">Soon</span>}</span>
+        <span>{label}</span>
         {hint && <span className="hint">{hint}</span>}
       </span>
-      <input type="checkbox" className="switch" checked={checked} disabled={soon} onChange={(e) => onChange?.(e.target.checked)} />
+      <input type="checkbox" className="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} />
     </label>
   );
 }
@@ -112,11 +110,11 @@ function Account({ settings, update, stats, auth, sync }: {
     <Row label="Sync across devices" hint={SYNC_HINT[sync]}>
       <span className={`syncdot ${sync}`}>{SYNC_LABEL[sync]}</span>
     </Row>
-    <Toggle checked={false} label="Public profile" hint="Let friends see your lists and favourites." soon />
   </>);
 }
 
 function Customise({ settings, update }: { settings: Settings; update: Update }) {
+  const [showGroupColours, setShowGroupColours] = useState(false);
   return (<>
     <Row label="Theme">
       <select id="set-theme" value={settings.theme} onChange={(e) => update({ theme: e.target.value as Theme })}>
@@ -147,6 +145,11 @@ function Customise({ settings, update }: { settings: Settings; update: Update })
     <Toggle checked={settings.showStats} onChange={(v) => update({ showStats: v })} label="Show stats" />
     <Toggle checked={settings.groupColors} onChange={(v) => update({ groupColors: v })} label="Colour series groups" hint="Used by the A–Z sort." />
     {settings.groupColors && (
+      <button className="linkbtn disclose" onClick={() => setShowGroupColours(!showGroupColours)} aria-expanded={showGroupColours}>
+        {showGroupColours ? <ChevronUp size={14} /> : <ChevronDown size={14} />} Choose group colours
+      </button>
+    )}
+    {settings.groupColors && showGroupColours && (
       <div className="colorgrid">
         {SIZE_LABELS.map((label, i) => (
           <label key={label} className="row">
@@ -189,7 +192,6 @@ function ListSettings({ settings, update }: { settings: Settings; update: Update
         {[7, 14, 30, 90].map((d) => <option key={d} value={d}>{d} days</option>)}
       </select>
     </Row>
-    <Toggle checked={false} label="Episode tracking for series" hint="Tick off seasons and episodes, see what's up next." soon />
   </>);
 }
 
@@ -223,15 +225,6 @@ function GetApp() {
         <span className="hint">Open <b>aria-fawn-seven.vercel.app</b> on your phone or another computer and tap "Install ARIA". Sign in with the same account and your lists come with you.</span>
       </span>
     </div>
-  </>);
-}
-
-function Notifications() {
-  return (<>
-    <p className="hint">Reminders are coming soon.</p>
-    <Toggle checked={false} label="New releases" hint="When a new part or season of something you follow comes out." soon />
-    <Toggle checked={false} label="Rewatch reminders" hint="A nudge to rewatch a favourite." soon />
-    <Toggle checked={false} label="Weekly summary" hint="What you watched this week." soon />
   </>);
 }
 
@@ -293,8 +286,6 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
         </div>
       </>)}
     </div>
-    <Toggle checked={false} label="Add my ratings to the ARIA score" hint="Off by default: your ratings stay private. Turn on to add them, anonymously, to the community ARIA score." soon />
-    <Toggle checked={false} label="Import from Letterboxd, IMDb or TV Time" hint="Bring your watch history with you." soon />
     {confirm ? (
       <div className="setting column danger-zone">
         <span>Move every title in All to Recently deleted?</span>
@@ -311,23 +302,24 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
   </>);
 }
 
-function About({ onShowWelcome }: { onShowWelcome: () => void }) {
+function About({ onShowWelcome, email }: { onShowWelcome: () => void; email?: string }) {
   return (<>
-    <p className="about"><b>ARIA</b> · version 1.0.17</p>
-    <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
-    <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
-    <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">
+    <div className="setting column">
+      <span className="setting-text">
+        <span>Send feedback</span>
+        <span className="hint">Found a bug or have an idea? Tell us here.</span>
+      </span>
+      <Feedback email={email} />
+    </div>
+    <Row label="Welcome tour" hint="The quick intro from your first visit.">
       <button onClick={onShowWelcome}>Show again</button>
     </Row>
-    <Row label="Help & feedback" hint="aria.app.help@protonmail.com">
-      <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Email us ›</a>
+    <Row label="Email us" hint="aria.app.help@protonmail.com">
+      <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Write ›</a>
     </Row>
-    <Row label="Terms of Service">
-      <a className="linkbtn" href="/terms.html" target="_blank" rel="noopener">Read ›</a>
-    </Row>
-    <Row label="Privacy Policy">
-      <a className="linkbtn" href="/privacy.html" target="_blank" rel="noopener">Read ›</a>
-    </Row>
+    <p className="hint aboutline">
+      ARIA {__APP_VERSION__} · free, with zero ads · <a href="/terms.html" target="_blank" rel="noopener">Terms</a> · <a href="/privacy.html" target="_blank" rel="noopener">Privacy</a>
+    </p>
   </>);
 }
 
@@ -364,10 +356,9 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
           {section === 'account' && <Account settings={settings} update={update} stats={stats} auth={auth} sync={sync} />}
           {section === 'customise' && <Customise settings={settings} update={update} />}
           {section === 'lists' && <ListSettings settings={settings} update={update} />}
-          {section === 'notifications' && <Notifications />}
           {section === 'app' && <GetApp />}
           {section === 'data' && <Data onClear={onClear} trash={trash} />}
-          {section === 'about' && <About onShowWelcome={onShowWelcome} />}
+          {section === 'about' && <About onShowWelcome={onShowWelcome} email={auth.user?.email} />}
         </div>
       </div>
     </div>,
