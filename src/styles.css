@@ -299,3 +299,24 @@ a.linkbtn { text-decoration: none; }
 .avatar, .icon { flex: 0 0 auto; aspect-ratio: 1; }
 .avatar img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
 img.avatar.big, .avatar.big { flex: 0 0 56px; width: 56px; height: 56px; aspect-ratio: 1; object-fit: cover; }
+
+/* Share my list */
+.sharebox { position: relative; flex-shrink: 0; }
+.sharebtn { white-space: nowrap; }
+.sharepop { position: absolute; z-index: 15; right: 0; top: calc(100% + 6px); width: min(320px, 86vw); display: grid; gap: 10px; padding: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.3); text-align: left; white-space: normal; }
+.sharepop .hint { margin: 0; }
+.sharelink { width: 100%; box-sizing: border-box; font-size: 13px; }
+.sharenote { color: var(--accent); }
+.danger-text { color: var(--danger); justify-self: start; padding-left: 0; }
+.listhead .sharebox { margin-left: auto; }
+.sortrow { position: relative; }
+.sortrow .sharebox { margin-left: auto; }
+/* Shared list page */
+.card.shared { max-width: 760px; }
+.sharedhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.brandlink { color: inherit; text-decoration: none; font-size: 26px; font-weight: 800; }
+.sharedtitle { margin: 0; font-size: 26px; }
+.sharedlist { margin-top: 14px; }
+.cta { display: grid; gap: 8px; justify-items: center; text-align: center; margin-top: 22px; padding: 18px; border-radius: 14px; background: rgba(91,75,219,.1); }
+.cta .hint { margin: 0; }
+.listtools { display: flex; justify-content: flex-end; margin: 0 0 6px; position: relative; z-index: 12; }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ACCENTS, defaults, SIZE_LABELS, type Settings, type StartTab, type Theme } from './settings';
 import { authReady, googleButtonReady, renderGoogleButton, type useAuth } from './auth';
@@ -9,19 +9,19 @@ import EnterInput from './EnterInput';
 export type Section = 'account' | 'customise' | 'lists' | 'notifications' | 'data' | 'about';
 
 const SECTIONS: { id: Section; label: string; icon: string }[] = [
-  { id: 'account', label: 'Account', icon: '👤' },
-  { id: 'customise', label: 'Customise', icon: '🎨' },
-  { id: 'lists', label: 'Lists & sorting', icon: '📋' },
-  { id: 'notifications', label: 'Notifications', icon: '🔔' },
-  { id: 'data', label: 'Privacy & data', icon: '🔒' },
-  { id: 'about', label: 'About', icon: 'ℹ️' },
+  { id: 'account', label: 'Account', icon: 'ðŸ‘¤' },
+  { id: 'customise', label: 'Customise', icon: 'ðŸŽ¨' },
+  { id: 'lists', label: 'Lists & sorting', icon: 'ðŸ“‹' },
+  { id: 'notifications', label: 'Notifications', icon: 'ðŸ””' },
+  { id: 'data', label: 'Privacy & data', icon: 'ðŸ”’' },
+  { id: 'about', label: 'About', icon: 'â„¹ï¸' },
 ];
 
 type Update = (p: Partial<Settings>) => void;
 type Trash = { deleted: Deleted[]; restore: (ids: string[]) => void; purge: (ids?: string[]) => void };
 
 const SYNC_LABEL: Record<SyncState, string> = {
-  off: 'Off', syncing: 'Saving…', synced: '✓ On', offline: 'Offline', 'needs-setup': 'Setup needed',
+  off: 'Off', syncing: 'Savingâ€¦', synced: 'âœ“ On', offline: 'Offline', 'needs-setup': 'Setup needed',
 };
 const SYNC_HINT: Record<SyncState, string> = {
   off: 'Sign in and your titles, lists and settings follow you to every device.',
@@ -76,14 +76,14 @@ function Account({ settings, update, stats, auth, sync }: {
         : <div className="avatar big">{(name || '?')[0].toUpperCase()}</div>}
       <div>
         <b>{name || 'Guest'}</b>
-        <p className="hint">{user ? (user.email || 'Signed in') : 'Not signed in'} · {stats.titles} titles · {stats.total} watches</p>
+        <p className="hint">{user ? (user.email || 'Signed in') : 'Not signed in'} Â· {stats.titles} titles Â· {stats.total} watches</p>
       </div>
     </div>
     <Row label="Display name" hint={user ? 'Press Enter to save. Leave empty to use your sign-in name.' : 'Press Enter to save.'}>
       <EnterInput id="acct-name" value={settings.name} allowEmpty onSave={(name) => update({ name })} placeholder={user?.name || 'Your name'} />
     </Row>
     {user ? (
-      <Row label="Signed in" hint={`${user.email ?? ''} · Signing out removes your list from this device. It stays safe in your account.`}>
+      <Row label="Signed in" hint={`${user.email ?? ''} Â· Signing out removes your list from this device. It stays safe in your account.`}>
         <button onClick={signOut}>Sign out</button>
       </Row>
     ) : (
@@ -142,7 +142,7 @@ function Customise({ settings, update }: { settings: Settings; update: Update })
     <Toggle checked={settings.showPosters} onChange={(v) => update({ showPosters: v })} label="Show posters" />
     <Toggle checked={settings.compact} onChange={(v) => update({ compact: v })} label="Compact list" hint="Hide descriptions so more titles fit." />
     <Toggle checked={settings.showStats} onChange={(v) => update({ showStats: v })} label="Show stats" />
-    <Toggle checked={settings.groupColors} onChange={(v) => update({ groupColors: v })} label="Colour series groups" hint="Used by the A–Z sort." />
+    <Toggle checked={settings.groupColors} onChange={(v) => update({ groupColors: v })} label="Colour series groups" hint="Used by the Aâ€“Z sort." />
     {settings.groupColors && (
       <div className="colorgrid">
         {SIZE_LABELS.map((label, i) => (
@@ -169,15 +169,15 @@ function ListSettings({ settings, update }: { settings: Settings; update: Update
         <option value="all">All</option>
         <option value="movie">Movies</option>
         <option value="series">Series</option>
-        <option value="favorites">★ Favorites</option>
-        <option value="want">🍿 Watchlist</option>
-        <option value="lists">📝 My lists</option>
+        <option value="favorites">â˜… Favorites</option>
+        <option value="want">ðŸ¿ Watchlist</option>
+        <option value="lists">ðŸ“ My lists</option>
       </select>
     </Row>
     <Row label="Sort All by">
       <select value={settings.sort} onChange={(e) => update({ sort: e.target.value as Settings['sort'] })}>
         <option value="mine">My order</option>
-        <option value="az">A–Z, series together</option>
+        <option value="az">Aâ€“Z, series together</option>
         <option value="genre">By genre</option>
       </select>
     </Row>
@@ -240,7 +240,7 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
             <li key={d.title.id}>
               <span className="trash-name">
                 <b>{d.title.name}</b>
-                <span className="hint">{d.title.kind === 'movie' ? 'Movie' : 'Series'}{d.title.year && ` · ${d.title.year}`} · removed {new Date(d.at).toLocaleDateString()}</span>
+                <span className="hint">{d.title.kind === 'movie' ? 'Movie' : 'Series'}{d.title.year && ` Â· ${d.title.year}`} Â· removed {new Date(d.at).toLocaleDateString()}</span>
               </span>
               <button onClick={() => trash.restore([d.title.id])}>Restore</button>
             </li>
@@ -277,20 +277,20 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
 
 function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
-    <p className="about"><b>ARIA</b> · version 1.0.3</p>
+    <p className="about"><b>ARIA</b> Â· version 1.0.4</p>
     <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
     <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
     <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">
       <button onClick={onShowWelcome}>Show again</button>
     </Row>
     <Row label="Help & feedback" hint="aria.app.help@protonmail.com">
-      <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Email us ›</a>
+      <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Email us â€º</a>
     </Row>
     <Row label="Terms of Service">
-      <a className="linkbtn" href="/terms.html" target="_blank" rel="noopener">Read ›</a>
+      <a className="linkbtn" href="/terms.html" target="_blank" rel="noopener">Read â€º</a>
     </Row>
     <Row label="Privacy Policy">
-      <a className="linkbtn" href="/privacy.html" target="_blank" rel="noopener">Read ›</a>
+      <a className="linkbtn" href="/privacy.html" target="_blank" rel="noopener">Read â€º</a>
     </Row>
   </>);
 }
@@ -314,7 +314,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Settings">
         <header className="sheet-head">
           <h2>Settings</h2>
-          <button className="icon" onClick={onClose} aria-label="Close">✕</button>
+          <button className="icon" onClick={onClose} aria-label="Close">âœ•</button>
         </header>
         <nav className="sheet-nav">
           {SECTIONS.map((s) => (

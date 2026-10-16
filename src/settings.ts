@@ -19,6 +19,7 @@ export interface Settings {
   startTab: StartTab; // tab shown when ARIA opens
   notifyReleases: boolean; // not wired up yet
   notifyRewatch: boolean; // not wired up yet
+  allShareId?: string; // link code if the All list is shared
 }
 
 const KEY = 'aria.settings';

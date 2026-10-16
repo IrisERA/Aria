@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import SearchBar from './SearchBar';
 import EnterInput from './EnterInput';
+import SharePanel from './SharePanel';
 import type { TitleInfo } from './types';
 
 interface ListItem extends TitleInfo {
@@ -13,6 +14,7 @@ export interface CustomList {
   name: string;
   notes: string;
   items: ListItem[];
+  shareId?: string; // link code if this list is shared
 }
 
 const KEY = 'aria.customLists';
@@ -79,11 +81,12 @@ export function useLists() {
   return { lists, setLists, edit, create, addItem, updateItem, removeItem, moveItem, remove };
 }
 
-export default function Lists({ store, mine, openId, setOpenId }: {
+export default function Lists({ store, mine, openId, setOpenId, share }: {
   store: ReturnType<typeof useLists>;
   mine: TitleInfo[];
   openId: string | null;
   setOpenId: (id: string | null) => void;
+  share: { ownerName: string; signedIn: boolean; onSignIn: () => void };
 }) {
   const { lists, edit, create, addItem, updateItem, removeItem, moveItem, remove } = store;
   const [adding, setAdding] = useState(false);
@@ -155,6 +158,13 @@ export default function Lists({ store, mine, openId, setOpenId }: {
           value={open.name}
           onSave={(name) => edit(open.id, (l) => ({ ...l, name }))}
           aria-label="List name"
+        />
+        <SharePanel
+          {...share}
+          shareId={open.shareId}
+          onShareId={(shareId) => edit(open.id, (l) => ({ ...l, shareId }))}
+          title={open.name}
+          items={open.items}
         />
       </div>
 

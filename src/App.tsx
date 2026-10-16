@@ -11,6 +11,9 @@ import { useCloudSync } from './sync';
 import { greeting } from './greeting';
 import { funFacts } from './facts';
 import Welcome, { hasSeenWelcome } from './Welcome';
+import SharePanel from './SharePanel';
+import SharedView from './SharedView';
+import { sharedIdFromPath } from './share';
 import { hasGenre, useGenreBackfill } from './genres';
 import { groupByGenre, groupTitles } from './grouping';
 import { SettingsSheet, type Section } from './Panels';
@@ -137,6 +140,20 @@ export default function App() {
   const tabGenres = [...genreCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([g]) => g);
   const shown = genre && tabGenres.includes(genre) ? inTab.filter((t) => hasGenre(t, genre)) : inTab;
 
+  const sharedId = sharedIdFromPath();
+  if (sharedId) {
+    return (
+      <SharedView
+        id={sharedId}
+        onWant={addWant}
+        alreadyHave={(t) => titles.some((x) => x.name.toLowerCase() === t.name.toLowerCase() && x.kind === t.kind)}
+      />
+    );
+  }
+
+  const firstName = name.trim().split(' ')[0];
+  const shareProps = { ownerName: firstName, signedIn: !!auth.user, onSignIn: () => openSettings('account') };
+
   return (
     <main className="card app">
       <aside className="side">
@@ -210,7 +227,7 @@ export default function App() {
       {filter !== 'lists' && <SearchBar mine={filter === 'want' ? [] : undefined} onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))} />}
       {filter === 'want' && wants.length > 0 && <p className="hint">Search above to add something you want to watch.</p>}
 
-      {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} /> : (<>
+      {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} share={shareProps} /> : (<>
       {shown.length === 0 && (
         <div className="empty">
           <span className="empty-icon" aria-hidden="true">{{ all: '🎬', movie: '🎥', series: '📺', favorites: '★', want: '🍿', lists: '📝' }[filter]}</span>
@@ -222,6 +239,17 @@ export default function App() {
             want: 'Nothing here yet. Search above to save something for later.',
             lists: '',
           }[filter]}</p>
+        </div>
+      )}
+      {filter === 'all' && watched.length > 0 && (
+        <div className="listtools">
+          <SharePanel
+            {...shareProps}
+            shareId={settings.allShareId}
+            onShareId={(allShareId) => update({ allShareId })}
+            title={firstName ? `${firstName}'s watched list` : 'My watched list'}
+            items={watched}
+          />
         </div>
       )}
       {inTab.length > 0 && (

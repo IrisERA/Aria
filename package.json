@@ -1,7 +1,7 @@
 {
   "name": "aria",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -31,7 +31,7 @@
   "build": {
     "appId": "com.irisera.aria",
     "productName": "ARIA",
-    "copyright": "Copyright © 2026 IrisERA. All rights reserved.",
+    "copyright": "Copyright Â© 2026 IrisERA. All rights reserved.",
     "directories": {
       "output": "release",
       "buildResources": "build"
