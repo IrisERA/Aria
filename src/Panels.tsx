@@ -320,6 +320,10 @@ function About({ onShowWelcome, email }: { onShowWelcome: () => void; email?: st
     <p className="hint aboutline">
       ARIA {__APP_VERSION__} · free, with zero ads · <a href="/terms.html" target="_blank" rel="noopener">Terms</a> · <a href="/privacy.html" target="_blank" rel="noopener">Privacy</a>
     </p>
+    <p className="hint credits">
+      Movie and series information comes from IMDb, iTunes (Apple) and <a href="https://www.tvmaze.com" target="_blank" rel="noopener">TVmaze</a> (CC BY-SA).
+      ARIA isn't affiliated with or endorsed by them. Titles, posters and descriptions belong to their respective owners.
+    </p>
   </>);
 }
 
