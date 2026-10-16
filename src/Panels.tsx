@@ -5,7 +5,7 @@ import { authReady, googleButtonReady, renderGoogleButton, type useAuth } from '
 import type { SyncState } from './sync';
 import type { Deleted } from './store';
 import EnterInput from './EnterInput';
-import InstallButton from './InstallButton';
+import InstallButton, { desktopAppVersion, isInstalled } from './InstallButton';
 
 export type Section = 'account' | 'customise' | 'lists' | 'notifications' | 'app' | 'data' | 'about';
 
@@ -193,12 +193,26 @@ function ListSettings({ settings, update }: { settings: Settings; update: Update
 }
 
 function GetApp() {
+  const desktop = desktopAppVersion();
+  if (desktop) {
+    return (<>
+      <p className="hint">You're using the ARIA desktop app{desktop !== '?' ? ` (version ${desktop})` : ''}.</p>
+      <p className="hint">Updates arrive by themselves: when a new version is released, ARIA asks you whether to update.</p>
+      <p className="hint">On your phone, open <b>aria-fawn-seven.vercel.app</b> and tap "Install ARIA". Sign in with the same account and your lists come with you.</p>
+    </>);
+  }
+  if (isInstalled()) {
+    return (<>
+      <p className="hint">✓ ARIA is installed on this device, and it updates by itself.</p>
+      <p className="hint">On another device, open <b>aria-fawn-seven.vercel.app</b> and tap "Install ARIA". Sign in with the same account and your lists come with you.</p>
+    </>);
+  }
   return (<>
     <p className="hint">Install ARIA so it opens in its own window with its own icon, like any other app. It's free, takes a few seconds, and always stays up to date.</p>
     <div className="setting column">
       <span className="setting-text">
         <span>This device</span>
-        <span className="hint">Computer, Android phone or tablet. On iPhone and iPad it shows you how.</span>
+        <span className="hint">On Windows this downloads the ARIA desktop app. On other computers, phones and tablets it installs ARIA from your browser.</span>
       </span>
       <InstallButton big />
     </div>
@@ -207,13 +221,6 @@ function GetApp() {
         <span>Other devices</span>
         <span className="hint">Open <b>aria-fawn-seven.vercel.app</b> on your phone or another computer and tap "Install ARIA". Sign in with the same account and your lists come with you.</span>
       </span>
-    </div>
-    <div className="setting column">
-      <span className="setting-text">
-        <span>Windows desktop app (download)</span>
-        <span className="hint">A separate download from GitHub. Windows may warn you because it isn't signed yet; the install above has no warnings.</span>
-      </span>
-      <a className="linkbtn" href="https://github.com/IrisERA/Aria/releases/latest" target="_blank" rel="noopener">Open downloads ›</a>
     </div>
   </>);
 }
@@ -305,7 +312,7 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
 
 function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
-    <p className="about"><b>ARIA</b> · version 1.0.8</p>
+    <p className="about"><b>ARIA</b> · version 1.0.9</p>
     <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
     <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
     <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">

@@ -1,0 +1,32 @@
+# Builds the Windows desktop app on GitHub's computers whenever a version tag (v1.2.3) is pushed,
+# and attaches the installer, its .blockmap and latest.yml to that version's GitHub release.
+# Installed desktop apps check those files to offer the update.
+name: Desktop app
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      # Public values (the same ones the website uses); no secrets here.
+      VITE_SUPABASE_URL: https://rahvvxklhrfuenvtwfty.supabase.co
+      VITE_SUPABASE_ANON_KEY: sb_publishable_j5qTNBLgciQVPnRW6_OWhw_WBMcXjC2
+      VITE_GOOGLE_CLIENT_ID: 1079116186909-6grqh0vshmek26urodmsn913a8a34mm0.apps.googleusercontent.com
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx electron-builder --win nsis --publish always
