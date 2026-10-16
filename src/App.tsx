@@ -18,7 +18,7 @@ import { sharedIdFromPath } from './share';
 import { hasGenre, useGenreBackfill } from './genres';
 import { groupByGenre, groupTitles } from './grouping';
 import { SettingsSheet, type Section } from './Panels';
-import type { Kind } from './types';
+import { onWatchlist, type Kind, type Title } from './types';
 
 const SYNC_TEXT = {
   off: 'Not signed in',
@@ -31,7 +31,7 @@ const SYNC_TEXT = {
 type Filter = 'all' | Kind | 'favorites' | 'want' | 'lists';
 
 export default function App() {
-  const { titles, setTitles, setGenres, deleted, restore, purge, logWatch, addWant, setRating, setWant, undoWatch, toggleFavorite, remove, move, clearAll } = useTitles();
+  const { titles, setTitles, setGenres, deleted, restore, purge, logWatch, addWant, removeFromWatchlist, removeWatched, putBack, setRating, setWant, undoWatch, toggleFavorite, remove, move, clearAll } = useTitles();
   const { settings, update, replace: replaceSettings } = useSettings();
   const auth = useAuth();
   const name = settings.name || auth.user?.name || '';
@@ -55,7 +55,7 @@ export default function App() {
     try { localStorage.setItem('aria.guestNoteHidden', '1'); } catch {}
   }
   const [factSeed] = useState(() => Math.random());
-  const [undo, setUndo] = useState<{ ids: string[]; text: string } | null>(null);
+  const [undo, setUndo] = useState<{ ids: string[]; text: string; before?: Title } | null>(null);
   const [dropListId, setDropListId] = useState<string | null>(null);
   const [openListId, setOpenListId] = useState<string | null>(null);
   const lists = useLists();
@@ -93,9 +93,17 @@ export default function App() {
     replaceSettings({});
   }
 
+  // ✕ on a title. On the Watchlist tab it only takes it off the watchlist; elsewhere a title
+  // that's also on the watchlist stays there.
   function removeTitle(id: string, title: string) {
-    remove(id);
-    setUndo({ ids: [id], text: `Removed ${title}` });
+    const before = titles.find((t) => t.id === id);
+    if (!before) return;
+    if (filter === 'want') {
+      removeFromWatchlist(id);
+      return setUndo({ ids: [id], text: `Removed ${title} from your watchlist`, before });
+    }
+    removeWatched(id);
+    setUndo({ ids: [id], text: onWatchlist(before) ? `Removed ${title} (still on your watchlist)` : `Removed ${title}`, before });
   }
 
   function clearList() {
@@ -131,7 +139,7 @@ export default function App() {
 
   // Shown in the user's own order (drag to rearrange).
   const watched = titles.filter((t) => t.status !== 'want');
-  const wants = titles.filter((t) => t.status === 'want');
+  const wants = titles.filter(onWatchlist);
   const inTab = filter === 'want'
     ? wants
     : watched.filter((t) => filter === 'all' || (filter === 'favorites' ? t.favorite : t.kind === filter));
@@ -232,7 +240,8 @@ export default function App() {
       {filter !== 'lists' && <SearchBar mine={filter === 'want' ? [] : undefined} onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))} />}
       {filter === 'want' && wants.length > 0 && <p className="hint">Search above to add something you want to watch.</p>}
 
-      {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} /> : (<>
+      {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId}
+        inWatchlist={(i) => wants.some((t) => t.name.toLowerCase() === i.name.toLowerCase() && t.kind === i.kind)} /> : (<>
       {shown.length === 0 && (
         <div className="empty">
           <span className="empty-icon" aria-hidden="true">{{ all: '🎬', movie: '🎥', series: '📺', favorites: '★', want: '🍿', lists: '📝' }[filter]}</span>
@@ -346,6 +355,7 @@ export default function App() {
                   {t.name}
                 </strong>
                 <span className="hint">
+                  {filter !== 'want' && onWatchlist(t) && <span className="wltag">In watchlist</span>}
                   {t.kind === 'movie' ? 'Movie' : 'Series'}
                   {t.year && ` · ${t.year}`}
                   {!!t.genres?.length && ` · ${t.genres.slice(0, 2).join(', ')}`}
@@ -358,7 +368,7 @@ export default function App() {
                   {open ? '▲ Less' : '▼ More'}
                 </button>
               </div>
-              {t.status === 'want' && <button className="primary quick" onClick={() => logWatch(t)}>✓ Watched</button>}
+              {filter === 'want' && <button className="primary quick" onClick={() => logWatch(t, 'manual', true)}>✓ Watched</button>}
               <button className="del" onClick={() => removeTitle(t.id, t.name)} aria-label="Remove">✕</button>
               </div>
               {open && (
@@ -370,8 +380,8 @@ export default function App() {
                   <Stars value={t.rating} onChange={(r) => setRating(t.id, r)} />
                   <h4>Status</h4>
                   <div className="row">
-                    <button className={t.status !== 'want' ? 'tab active' : 'tab'} onClick={() => (t.watches.length ? setWant(t.id, false) : logWatch(t))}>✓ Watched</button>
-                    <button className={t.status === 'want' ? 'tab active' : 'tab'} onClick={() => setWant(t.id, true)}>🍿 Want to watch</button>
+                    <button className={t.watches.length ? 'tab active' : 'tab'} onClick={() => !t.watches.length && logWatch(t)}>✓ Watched</button>
+                    <button className={onWatchlist(t) ? 'tab active' : 'tab'} onClick={() => setWant(t.id, !onWatchlist(t))}>🍿 {onWatchlist(t) ? 'On my watchlist' : 'Add to watchlist'}</button>
                   </div>
                   {t.status !== 'want' && (<>
                     <h4>Times watched</h4>
@@ -396,7 +406,7 @@ export default function App() {
       {undo && !dragId && (
         <div className="toast" role="status">
           <span>{undo.text}</span>
-          <button className="linkbtn" onClick={() => { restore(undo.ids); setUndo(null); }}>Undo</button>
+          <button className="linkbtn" onClick={() => { undo.before ? putBack(undo.before) : restore(undo.ids); purge(undo.ids); setUndo(null); }}>Undo</button>
         </div>
       )}
       {dragId && (

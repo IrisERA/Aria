@@ -27,6 +27,7 @@ function mergeTitle(a: Title, b: Title): Title {
     ...other,
     ...main,
     favorite: a.favorite || b.favorite,
+    watchlist: a.watchlist || b.watchlist || undefined,
     rating: main.rating ?? other.rating,
     description: main.description ?? other.description,
     poster: main.poster ?? other.poster,

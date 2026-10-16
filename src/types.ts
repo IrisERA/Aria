@@ -18,6 +18,11 @@ export interface Title {
   watches: Watch[];
   rating?: number; // ½ to 5 stars
   status?: 'want'; // on the watchlist, not watched yet (absent = watched)
+  watchlist?: boolean; // watched, and also kept on the watchlist
 }
+
+// On the watchlist: either not watched yet, or watched and kept there.
+export const onWatchlist = (t: Pick<Title, 'status' | 'watchlist'>) => t.status === 'want' || !!t.watchlist;
+
 
 export type TitleInfo = Pick<Title, 'name' | 'kind' | 'year' | 'poster' | 'description' | 'genres'>;

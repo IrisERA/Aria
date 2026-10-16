@@ -80,11 +80,12 @@ export function useLists() {
   return { lists, setLists, edit, create, addItem, updateItem, removeItem, moveItem, remove };
 }
 
-export default function Lists({ store, mine, openId, setOpenId }: {
+export default function Lists({ store, mine, openId, setOpenId, inWatchlist }: {
   store: ReturnType<typeof useLists>;
   mine: TitleInfo[];
   openId: string | null;
   setOpenId: (id: string | null) => void;
+  inWatchlist: (t: TitleInfo) => boolean;
 }) {
   const { lists, edit, create, addItem, updateItem, removeItem, moveItem, remove } = store;
   const [adding, setAdding] = useState(false);
@@ -202,7 +203,7 @@ export default function Lists({ store, mine, openId, setOpenId }: {
               {item.poster ? <img src={item.poster} alt="" /> : <div className="noposter">🎬</div>}
               <div className="info">
                 <strong>{item.name}</strong>
-                <span className="hint">{item.kind === 'movie' ? 'Movie' : 'Series'}{item.year && ` · ${item.year}`}{item.comment && ' · 💬'}</span>
+                <span className="hint">{inWatchlist(item) && <span className="wltag">In watchlist</span>}{item.kind === 'movie' ? 'Movie' : 'Series'}{item.year && ` · ${item.year}`}{item.comment && ' · 💬'}</span>
                 <button className="more" onClick={() => setExpanded(expanded === item.id ? null : item.id)} aria-expanded={expanded === item.id}>
                   {expanded === item.id ? '▲ Less' : '▼ More'}
                 </button>

@@ -360,3 +360,6 @@ a.buttonlink { border-radius: 10px; padding: 8px 12px; }
   .listbody.withnotes .notespanel { order: 2; position: sticky; top: 16px; }
   .notespanel textarea { min-height: 320px; }
 }
+
+/* "In watchlist" tag: 2px smaller than the line it sits in */
+.wltag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: 0 6px; margin-right: 6px; line-height: 1.5; }

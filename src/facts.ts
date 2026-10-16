@@ -6,7 +6,7 @@ const DAYS = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Frid
 // Little facts about your own watching, built only from what's in your list.
 export function funFacts(titles: Title[]): string[] {
   const watched = titles.filter((t) => t.status !== 'want');
-  const wants = titles.length - watched.length;
+  const wants = titles.filter((t) => t.status === 'want' || t.watchlist).length;
   const watches = watched.flatMap((t) => t.watches);
   const withYear = watched.filter((t) => t.year && /^\d{4}$/.test(t.year));
   const facts: string[] = [];

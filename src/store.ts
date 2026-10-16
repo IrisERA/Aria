@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Source, Title, TitleInfo } from './types';
+import { onWatchlist, type Source, type Title, type TitleInfo } from './types';
 
 const KEY = 'aria.list';
 const TRASH_KEY = 'aria.deleted';
@@ -48,24 +48,50 @@ export function useTitles() {
   }, [deleted]);
 
   // Logs a watch; creates the title if it's new. Used by both the UI and detectors.
-  function logWatch(info: TitleInfo, source: Source = 'manual') {
+  // A title on the watchlist stays there unless `leaveWatchlist` (the watchlist's own "✓ Watched").
+  function logWatch(info: TitleInfo, source: Source = 'manual', leaveWatchlist = false) {
     const watch = { at: new Date().toISOString(), source };
     const name = info.name.trim();
     setTitles((prev) => {
       const match = prev.find((t) => t.name.toLowerCase() === name.toLowerCase() && t.kind === info.kind);
-      if (match) return prev.map((t) => (t === match ? { ...t, status: undefined, watches: [...t.watches, watch] } : t));
+      if (match) {
+        return prev.map((t) => (t === match
+          ? { ...t, status: undefined, watchlist: !leaveWatchlist && onWatchlist(t) ? true : undefined, watches: [...t.watches, watch] }
+          : t));
+      }
       return [{ ...pick(info), name, id: crypto.randomUUID(), favorite: false, watches: [watch] }, ...prev];
     });
   }
 
-  // Adds a title to the watchlist ("want to watch"); does nothing if it's already saved.
+  // Adds a title to the watchlist ("want to watch"). Already-watched titles are kept on it too.
   function addWant(info: TitleInfo) {
     const name = info.name.trim();
-    setTitles((prev) =>
-      prev.some((t) => t.name.toLowerCase() === name.toLowerCase() && t.kind === info.kind)
-        ? prev
-        : [{ ...pick(info), name, id: crypto.randomUUID(), favorite: false, watches: [], status: 'want' }, ...prev],
-    );
+    setTitles((prev) => {
+      const match = prev.find((t) => t.name.toLowerCase() === name.toLowerCase() && t.kind === info.kind);
+      if (match) return onWatchlist(match) ? prev : prev.map((t) => (t === match ? { ...t, watchlist: true } : t));
+      return [{ ...pick(info), name, id: crypto.randomUUID(), favorite: false, watches: [], status: 'want' }, ...prev];
+    });
+  }
+
+  // Takes a title off the watchlist; one that was never watched is removed (to Recently deleted).
+  function removeFromWatchlist(id: string) {
+    const t = titles.find((x) => x.id === id);
+    if (!t) return;
+    if (t.status === 'want') return remove(id);
+    setTitles((prev) => prev.map((x) => (x.id === id ? { ...x, watchlist: undefined } : x)));
+  }
+
+  // Removes a title from your watched list. If it's also on the watchlist it stays there.
+  function removeWatched(id: string) {
+    const t = titles.find((x) => x.id === id);
+    if (!t) return;
+    if (!onWatchlist(t)) return remove(id);
+    setTitles((prev) => prev.map((x) => (x.id === id ? { ...x, status: 'want', watchlist: undefined, watches: [] } : x)));
+  }
+
+  // Puts a title back exactly as it was (for Undo).
+  function putBack(title: Title) {
+    setTitles((prev) => (prev.some((t) => t.id === title.id) ? prev.map((t) => (t.id === title.id ? title : t)) : [title, ...prev]));
   }
 
   function setGenres(id: string, genres: string[]) {
@@ -76,8 +102,13 @@ export function useTitles() {
     setTitles((prev) => prev.map((t) => (t.id === id ? { ...t, rating } : t)));
   }
 
+  // Watchlist on/off for a title (watched titles keep their history either way).
   function setWant(id: string, want: boolean) {
-    setTitles((prev) => prev.map((t) => (t.id === id ? { ...t, status: want ? 'want' : undefined } : t)));
+    setTitles((prev) => prev.map((t) => {
+      if (t.id !== id) return t;
+      if (want) return t.watches.length ? { ...t, watchlist: true } : { ...t, status: 'want' };
+      return { ...t, watchlist: undefined };
+    }));
   }
 
   // Moves a title to where another one sits (drag and drop).
@@ -129,5 +160,5 @@ export function useTitles() {
     setDeleted((prev) => (ids ? prev.filter((d) => !ids.includes(d.title.id)) : []));
   }
 
-  return { titles, setTitles, setGenres, deleted, restore, purge, logWatch, addWant, setRating, setWant, undoWatch, toggleFavorite, remove, move, clearAll };
+  return { titles, setTitles, setGenres, deleted, restore, purge, logWatch, addWant, removeFromWatchlist, removeWatched, putBack, setRating, setWant, undoWatch, toggleFavorite, remove, move, clearAll };
 }
