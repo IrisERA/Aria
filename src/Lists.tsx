@@ -93,8 +93,7 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
   const [deleting, setDeleting] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
-  const [from, setFrom] = useState(1);
-  const [to, setTo] = useState<number | null>(null);
+  const [notesOpen, setNotesOpen] = useState(false);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
 
@@ -102,8 +101,7 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
 
   function openList(id: string) {
     setOpenId(id);
-    setFrom(1);
-    setTo(null);
+    setNotesOpen(false);
     setAdding(false);
   }
 
@@ -144,10 +142,7 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
   }
 
   const last = open.items.length;
-  const end = Math.min(to ?? last, last);
-  const start = Math.max(1, Math.min(from, end || 1));
-  const shown = open.items.map((item, i) => ({ item, n: i + 1 })).filter(({ n }) => n >= start && n <= end);
-  const filtered = last > 0 && (start > 1 || end < last);
+  const shown = open.items.map((item, i) => ({ item, n: i + 1 }));
 
   return (
     <section>
@@ -159,6 +154,9 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
           onSave={(name) => edit(open.id, (l) => ({ ...l, name }))}
           aria-label="List name"
         />
+        <button className={notesOpen ? 'tab active notesbtn' : 'tab notesbtn'} onClick={() => setNotesOpen(!notesOpen)} aria-expanded={notesOpen} title="Notepad">
+          📝 Notes{open.notes.trim() && !notesOpen && <span className="notesdot" aria-label="has notes" />}
+        </button>
         <SharePanel
           {...share}
           shareId={open.shareId}
@@ -168,15 +166,22 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
         />
       </div>
 
-      <label className="notes">
-        Notepad
-        <textarea
-          value={open.notes}
-          onChange={(e) => edit(open.id, (l) => ({ ...l, notes: e.target.value }))}
-          placeholder="Write anything about this list…"
-          rows={4}
-        />
-      </label>
+      <div className={notesOpen ? 'listbody withnotes' : 'listbody'}>
+      {notesOpen && (
+        <aside className="notespanel">
+          <div className="row notestop">
+            <b>Notepad</b>
+            <button className="linkbtn" onClick={() => setNotesOpen(false)} aria-label="Close notepad">✕</button>
+          </div>
+          <textarea
+            value={open.notes}
+            onChange={(e) => edit(open.id, (l) => ({ ...l, notes: e.target.value }))}
+            placeholder="Write anything about this list…"
+            autoFocus
+          />
+        </aside>
+      )}
+      <div className="listmain">
 
       {adding ? (
         <div className="row addrow">
@@ -185,16 +190,6 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
         </div>
       ) : (
         <button className="primary addbtn" onClick={() => setAdding(true)}>+ Add</button>
-      )}
-
-      {last > 0 && (
-        <div className="row range">
-          <span>Show #</span>
-          <input type="number" min={1} max={last} value={start} onChange={(e) => setFrom(Number(e.target.value) || 1)} aria-label="From number" />
-          <span>to #</span>
-          <input type="number" min={1} max={last} value={end} onChange={(e) => setTo(Number(e.target.value) || last)} aria-label="To number" />
-          {filtered && <button onClick={() => { setFrom(1); setTo(null); }}>Show all</button>}
-        </div>
       )}
 
       {last === 0 && <p className="hint">This list is empty. Tap + Add, or drag titles here from All.</p>}
@@ -245,6 +240,9 @@ export default function Lists({ store, mine, openId, setOpenId, share }: {
           </li>
         ))}
       </ul>
+
+      </div>
+      </div>
 
       {deleting ? (
         <div className="row deletelist">

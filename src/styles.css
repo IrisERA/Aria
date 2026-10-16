@@ -343,3 +343,20 @@ a.buttonlink { border-radius: 10px; padding: 8px 12px; }
 .sitefoot a { color: inherit; }
 .loading-intro { max-width: 520px; color: var(--muted); }
 .loading-intro h1 { font-size: 20px; color: var(--fg); }
+
+/* Fun fact: a little breathing room above the tabs */
+.fact { margin-bottom: 6px; }
+/* Collapsible notepad in a list */
+.notesbtn { position: relative; white-space: nowrap; flex-shrink: 0; }
+.notesdot { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.listbody.withnotes { display: grid; gap: 14px; }
+.notespanel { display: grid; gap: 6px; align-content: start; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.notestop { justify-content: space-between; }
+.notespanel textarea { font: inherit; color: var(--fg); background: var(--btn); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; resize: vertical; min-height: 140px; }
+.notespanel textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.listmain { min-width: 0; }
+@media (min-width: 960px) {
+  .listbody.withnotes { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+  .listbody.withnotes .notespanel { order: 2; position: sticky; top: 16px; }
+  .notespanel textarea { min-height: 320px; }
+}

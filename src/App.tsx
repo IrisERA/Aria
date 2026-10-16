@@ -11,7 +11,6 @@ import { useCloudSync } from './sync';
 import { greeting } from './greeting';
 import { funFacts } from './facts';
 import Welcome, { hasSeenWelcome } from './Welcome';
-import SharePanel from './SharePanel';
 import InstallButton from './InstallButton';
 import SharedView from './SharedView';
 import { sharedIdFromPath } from './share';
@@ -244,17 +243,6 @@ export default function App() {
             want: 'Nothing here yet. Search above to save something for later.',
             lists: '',
           }[filter]}</p>
-        </div>
-      )}
-      {filter === 'all' && watched.length > 0 && (
-        <div className="listtools">
-          <SharePanel
-            {...shareProps}
-            shareId={settings.allShareId}
-            onShareId={(allShareId) => update({ allShareId })}
-            title={firstName ? `${firstName}'s watched list` : 'My watched list'}
-            items={watched}
-          />
         </div>
       )}
       {inTab.length > 0 && (
