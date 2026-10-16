@@ -12,6 +12,7 @@ import { greeting } from './greeting';
 import { funFacts } from './facts';
 import Welcome, { hasSeenWelcome } from './Welcome';
 import InstallButton from './InstallButton';
+import SharePanel from './SharePanel';
 import SharedView from './SharedView';
 import { sharedIdFromPath } from './share';
 import { hasGenre, useGenreBackfill } from './genres';
@@ -231,7 +232,7 @@ export default function App() {
       {filter !== 'lists' && <SearchBar mine={filter === 'want' ? [] : undefined} onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))} />}
       {filter === 'want' && wants.length > 0 && <p className="hint">Search above to add something you want to watch.</p>}
 
-      {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} share={shareProps} /> : (<>
+      {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} /> : (<>
       {shown.length === 0 && (
         <div className="empty">
           <span className="empty-icon" aria-hidden="true">{{ all: '🎬', movie: '🎥', series: '📺', favorites: '★', want: '🍿', lists: '📝' }[filter]}</span>
@@ -243,6 +244,17 @@ export default function App() {
             want: 'Nothing here yet. Search above to save something for later.',
             lists: '',
           }[filter]}</p>
+        </div>
+      )}
+      {filter === 'all' && watched.length > 0 && (
+        <div className="listtools">
+          <SharePanel
+            {...shareProps}
+            shareId={settings.allShareId}
+            onShareId={(allShareId) => update({ allShareId })}
+            title={firstName ? `${firstName}'s watched list` : 'My watched list'}
+            items={watched}
+          />
         </div>
       )}
       {inTab.length > 0 && (
