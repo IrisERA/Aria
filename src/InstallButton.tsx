@@ -59,6 +59,13 @@ export default function InstallButton({ big = false }: { big?: boolean }) {
   const [, setReady] = useState(!!deferred);
   const [done, setDone] = useState(isInstalled());
   const [help, setHelp] = useState<'' | 'guide' | 'ios' | 'downloaded' | 'other'>('');
+  const windows = isWindowsDesktop();
+  // The installer's address is looked up in advance, so the button is a plain download link
+  // (browsers only allow downloads that come straight from a click).
+  const [installer, setInstaller] = useState(RELEASES_URL);
+  useEffect(() => {
+    if (windows) latestInstallerUrl().then(setInstaller);
+  }, [windows]);
 
   useEffect(() => {
     const ready = () => setReady(true);
@@ -73,14 +80,9 @@ export default function InstallButton({ big = false }: { big?: boolean }) {
 
   if (done) return null;
 
-  const windows = isWindowsDesktop();
   const label = windows ? '⬇ Download ARIA for Windows' : PLAY_STORE_URL && isAndroid() ? '▶ Get it on Google Play' : '⬇ Install ARIA';
 
   async function go() {
-    if (windows) {
-      window.location.href = await latestInstallerUrl();
-      return setHelp('downloaded');
-    }
     if (PLAY_STORE_URL && isAndroid()) return void window.open(PLAY_STORE_URL, '_blank', 'noopener');
     if (deferred) {
       deferred.prompt();
@@ -97,11 +99,21 @@ export default function InstallButton({ big = false }: { big?: boolean }) {
 
   return (
     <div className="installbox">
-      <button className={big ? 'primary' : 'installbtn'} onClick={go}>{label}</button>
+      {windows ? (
+        <a className={big ? 'primary buttonlink' : 'installbtn'} href={installer} onClick={() => setHelp('downloaded')}>{label}</a>
+      ) : (
+        <button className={big ? 'primary' : 'installbtn'} onClick={go}>{label}</button>
+      )}
       {help === 'downloaded' && (
-        <p className="hint installhelp">
-          Open the downloaded file to install ARIA. If Windows says "Windows protected your PC", click <b>More info</b> → <b>Run anyway</b>.
-        </p>
+        <div className="hint installhelp">
+          <b>Almost there:</b>
+          <ol className="steps">
+            <li>Open <b>ARIA-Setup</b> from your downloads (bottom or top-right of your browser).</li>
+            <li>If your browser asks, choose <b>Keep</b>.</li>
+            <li>If Windows says "Windows protected your PC", click <b>More info</b> → <b>Run anyway</b>.</li>
+          </ol>
+          ARIA then installs, adds a desktop shortcut and opens by itself.
+        </div>
       )}
       {help === 'guide' && <AddressBarGuide />}
       {help === 'ios' && <p className="hint installhelp">In Safari, tap <b>Share</b> at the bottom, then <b>Add to Home Screen</b>.</p>}
