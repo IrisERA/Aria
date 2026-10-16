@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "app": "vite build && electron .",
+    "dist:win": "vite build && electron-builder --win nsis"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
@@ -17,7 +19,40 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
     "typescript": "^5.5.4",
     "vite": "^5.4.2"
+  },
+  "description": "Track the movies and series you love. Free, with zero ads.",
+  "author": "IrisERA",
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.irisera.aria",
+    "productName": "ARIA",
+    "copyright": "Copyright © 2026 IrisERA. All rights reserved.",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "ARIA-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ARIA"
+    }
   }
 }

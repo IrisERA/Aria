@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ACCENTS, defaults, SIZE_LABELS, type Settings, type StartTab, type Theme } from './settings';
 import { authReady, googleButtonReady, renderGoogleButton, type useAuth } from './auth';
 import type { SyncState } from './sync';
@@ -256,6 +257,7 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
         </div>
       </>)}
     </div>
+    <Toggle checked={false} label="Add my ratings to the ARIA score" hint="Off by default: your ratings stay private. Turn on to add them, anonymously, to the community ARIA score." soon />
     <Toggle checked={false} label="Import from Letterboxd, IMDb or TV Time" hint="Bring your watch history with you." soon />
     {confirm ? (
       <div className="setting column danger-zone">
@@ -302,7 +304,8 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
   onClear: () => void;
   trash: Trash;
 }) {
-  return (
+  // Drawn straight into <body> so nothing on the page can show through it.
+  return createPortal(
     <div className="backdrop" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Settings">
         <header className="sheet-head">
@@ -326,6 +329,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
           {section === 'about' && <About />}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
