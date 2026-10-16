@@ -312,7 +312,7 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
 
 function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
-    <p className="about"><b>ARIA</b> · version 1.0.15</p>
+    <p className="about"><b>ARIA</b> · version 1.0.16</p>
     <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
     <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
     <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">

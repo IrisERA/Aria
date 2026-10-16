@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import SearchBar from './SearchBar';
 import EnterInput from './EnterInput';
+import SharePanel from './SharePanel';
 import type { TitleInfo } from './types';
 
 interface ListItem extends TitleInfo {
@@ -80,12 +81,13 @@ export function useLists() {
   return { lists, setLists, edit, create, addItem, updateItem, removeItem, moveItem, remove };
 }
 
-export default function Lists({ store, mine, openId, setOpenId, inWatchlist }: {
+export default function Lists({ store, mine, openId, setOpenId, inWatchlist, share }: {
   store: ReturnType<typeof useLists>;
   mine: TitleInfo[];
   openId: string | null;
   setOpenId: (id: string | null) => void;
   inWatchlist: (t: TitleInfo) => boolean;
+  share: { ownerName: string; signedIn: boolean; onSignIn: () => void };
 }) {
   const { lists, edit, create, addItem, updateItem, removeItem, moveItem, remove } = store;
   const [adding, setAdding] = useState(false);
@@ -156,6 +158,13 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist }: {
         <button className={notesOpen ? 'tab active notesbtn' : 'tab notesbtn'} onClick={() => setNotesOpen(!notesOpen)} aria-expanded={notesOpen} title="Notepad">
           📝 Notes{open.notes.trim() && !notesOpen && <span className="notesdot" aria-label="has notes" />}
         </button>
+        <SharePanel
+          {...share}
+          shareId={open.shareId}
+          onShareId={(shareId) => edit(open.id, (l) => ({ ...l, shareId }))}
+          title={open.name}
+          items={open.items}
+        />
       </div>
 
       <div className={notesOpen ? 'listbody withnotes' : 'listbody'}>
