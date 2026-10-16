@@ -7,6 +7,8 @@ import Stars from './Stars';
 import Lists, { useLists } from './Lists';
 import { groupColor, useSettings } from './settings';
 import { authReady, useAuth } from './auth';
+import { Check, ChevronDown, ChevronUp, Film, ListChecks, Popcorn, Settings as SettingsIcon, Star, Trash2, X } from 'lucide-react';
+import { ICON, TAB_ICONS } from './icons';
 import { useCloudSync } from './sync';
 import { greeting } from './greeting';
 import { funFacts } from './facts';
@@ -175,7 +177,7 @@ export default function App() {
           <InstallButton />
         </div>
         <div className="corner">
-          <button className="icon" aria-label="Settings" onClick={() => openSettings(lastSection)}>⚙</button>
+          <button className="icon" aria-label="Settings" onClick={() => openSettings(lastSection)}><SettingsIcon size={18} strokeWidth={1.9} /></button>
           <button className="avatar" aria-label="Account" title={SYNC_TEXT[sync]} onClick={() => openSettings('account')}>
             {auth.user?.photo
               ? <img src={auth.user.photo} alt="" referrerPolicy="no-referrer" />
@@ -224,11 +226,15 @@ export default function App() {
       )}
 
       <div className="tabs">
-        {(['all', 'movie', 'series', 'favorites', 'want', 'lists'] as Filter[]).map((f) => (
-          <button key={f} className={filter === f ? 'tab active' : 'tab'} onClick={() => setFilter(f)}>
-            {{ all: 'All', movie: 'Movies', series: 'Series', favorites: '★ Favorites', want: `🍿 Watchlist${wants.length ? ` (${wants.length})` : ''}`, lists: '📝 My lists' }[f]}
-          </button>
-        ))}
+        {(['all', 'movie', 'series', 'favorites', 'want', 'lists'] as Filter[]).map((f) => {
+          const Icon = TAB_ICONS[f];
+          return (
+            <button key={f} className={filter === f ? 'tab active' : 'tab'} onClick={() => setFilter(f)}>
+              <Icon {...ICON} aria-hidden="true" />
+              {{ all: 'All', movie: 'Movies', series: 'Series', favorites: 'Favorites', want: `Watchlist${wants.length ? ` (${wants.length})` : ''}`, lists: 'My lists' }[f]}
+            </button>
+          );
+        })}
       </div>
       <footer className="sitefoot">
         ARIA · free movie &amp; TV show tracker, no ads · <a href="/terms.html">Terms</a> · <a href="/privacy.html">Privacy</a>
@@ -243,12 +249,12 @@ export default function App() {
         inWatchlist={(i) => wants.some((t) => t.name.toLowerCase() === i.name.toLowerCase() && t.kind === i.kind)} /> : (<>
       {shown.length === 0 && (
         <div className="empty">
-          <span className="empty-icon" aria-hidden="true">{{ all: '🎬', movie: '🎥', series: '📺', favorites: '★', want: '🍿', lists: '📝' }[filter]}</span>
+          <span className="empty-icon" aria-hidden="true">{(() => { const Icon = TAB_ICONS[filter]; return <Icon size={34} strokeWidth={1.5} />; })()}</span>
           <p>{{
             all: 'Nothing here yet. Search above for a movie or series you\'ve watched and tap it to add it.',
             movie: 'No movies yet. Search above to add one.',
             series: 'No series yet. Search above to add one.',
-            favorites: 'No favourites yet. Tap the ☆ next to any title to make it a favourite.',
+            favorites: 'No favourites yet. Tap the star next to any title to make it a favourite.',
             want: 'Nothing here yet. Search above to save something for later.',
             lists: '',
           }[filter]}</p>
@@ -334,11 +340,11 @@ export default function App() {
             >
               <div className="itemrow">
               <span className="handle">⠿</span>
-              {settings.showPosters && (t.poster ? <img src={t.poster} alt="" /> : <div className="noposter">🎬</div>)}
+              {settings.showPosters && (t.poster ? <img src={t.poster} alt="" /> : <div className="noposter"><Film size={20} strokeWidth={1.5} /></div>)}
               <div className="info">
                 <strong>
-                  <button className="star" onClick={() => toggleFavorite(t.id)} aria-label="Favorite">
-                    {t.favorite ? '★' : '☆'}
+                  <button className={t.favorite ? 'star on' : 'star'} onClick={() => toggleFavorite(t.id)} aria-label="Favorite" aria-pressed={t.favorite}>
+                    <Star size={17} strokeWidth={1.9} fill={t.favorite ? 'currentColor' : 'none'} />
                   </button>
                   {t.name}
                 </strong>
@@ -353,11 +359,11 @@ export default function App() {
                 {t.rating && <Stars value={t.rating} size={14} />}
                 {t.description && !settings.compact && !open && <span className="desc">{t.description}</span>}
                 <button className="more" onClick={() => setExpanded(open ? null : t.id)} aria-expanded={open}>
-                  {open ? '▲ Less' : '▼ More'}
+                  {open ? <><ChevronUp size={14} /> Less</> : <><ChevronDown size={14} /> More</>}
                 </button>
               </div>
-              {filter === 'want' && <button className="primary quick" onClick={() => logWatch(t, 'manual', true)}>✓ Watched</button>}
-              <button className="del" onClick={() => removeTitle(t.id, t.name)} aria-label="Remove">✕</button>
+              {filter === 'want' && <button className="primary quick" onClick={() => logWatch(t, 'manual', true)}><Check size={14} /> Watched</button>}
+              <button className="del" onClick={() => removeTitle(t.id, t.name)} aria-label="Remove"><X size={16} /></button>
               </div>
               {open && (
                 <div className="details">
@@ -368,8 +374,8 @@ export default function App() {
                   <Stars value={t.rating} onChange={(r) => setRating(t.id, r)} />
                   <h4>Status</h4>
                   <div className="row">
-                    <button className={t.watches.length ? 'tab active' : 'tab'} onClick={() => !t.watches.length && logWatch(t)}>✓ Watched</button>
-                    <button className={onWatchlist(t) ? 'tab active' : 'tab'} onClick={() => setWant(t.id, !onWatchlist(t))}>🍿 {onWatchlist(t) ? 'On my watchlist' : 'Add to watchlist'}</button>
+                    <button className={t.watches.length ? 'tab active' : 'tab'} onClick={() => !t.watches.length && logWatch(t)}><Check {...ICON} /> Watched</button>
+                    <button className={onWatchlist(t) ? 'tab active' : 'tab'} onClick={() => setWant(t.id, !onWatchlist(t))}><Popcorn {...ICON} /> {onWatchlist(t) ? 'On my watchlist' : 'Add to watchlist'}</button>
                   </div>
                   {t.status !== 'want' && (<>
                     <h4>Times watched</h4>
@@ -389,7 +395,7 @@ export default function App() {
         })}
       </ul>
       {deleted.length > 0 && filter !== 'want' && (
-        <button className="linkbtn trashlink" onClick={() => openSettings('data')}>🗑 Recently deleted ({deleted.length})</button>
+        <button className="linkbtn trashlink" onClick={() => openSettings('data')}><Trash2 size={14} /> Recently deleted ({deleted.length})</button>
       )}
       {undo && !dragId && (
         <div className="toast" role="status">
@@ -400,7 +406,7 @@ export default function App() {
       {dragId && (
         <div className="dropbar">
           <span>Drop into a list:</span>
-          {[...lists.lists.map((l) => ({ id: l.id, name: `📝 ${l.name}` })), { id: 'new', name: '+ New list' }].map((l) => (
+          {[...lists.lists.map((l) => ({ id: l.id, name: l.name, icon: true })), { id: 'new', name: '+ New list', icon: false }].map((l) => (
             <span
               key={l.id}
               className={dropListId === l.id ? 'droptarget over' : 'droptarget'}
@@ -408,7 +414,7 @@ export default function App() {
               onDragLeave={() => setDropListId(null)}
               onDrop={(e) => { e.preventDefault(); dropInto(l.id); }}
             >
-              {l.name}
+              {l.icon && <ListChecks size={14} />} {l.name}
             </span>
           ))}
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Download, Lock, MonitorDown, Play } from 'lucide-react';
 
 /*
  * Getting ARIA as an app:
@@ -47,8 +48,8 @@ function AddressBarGuide() {
   return (
     <div className="installguide" aria-label="Click the install icon at the right end of the address bar">
       <div className="fakebar">
-        <span className="fakeurl">🔒 aria-fawn-seven.vercel.app</span>
-        <span className="fakeicon" aria-hidden="true">⊞<span className="arrow">↓</span></span>
+        <span className="fakeurl"><Lock size={11} /> aria-fawn-seven.vercel.app</span>
+        <span className="fakeicon" aria-hidden="true"><MonitorDown size={15} /></span>
       </div>
       <span className="hint">Click this icon in the address bar, then <b>Install</b>.</span>
     </div>
@@ -80,7 +81,9 @@ export default function InstallButton({ big = false }: { big?: boolean }) {
 
   if (done) return null;
 
-  const label = windows ? '⬇ Download ARIA for Windows' : PLAY_STORE_URL && isAndroid() ? '▶ Get it on Google Play' : '⬇ Install ARIA';
+  const label = windows
+    ? <><Download size={14} /> Download ARIA for Windows</>
+    : PLAY_STORE_URL && isAndroid() ? <><Play size={14} /> Get it on Google Play</> : <><Download size={14} /> Install ARIA</>;
 
   async function go() {
     if (PLAY_STORE_URL && isAndroid()) return void window.open(PLAY_STORE_URL, '_blank', 'noopener');

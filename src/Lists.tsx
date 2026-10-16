@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import SearchBar from './SearchBar';
 import EnterInput from './EnterInput';
 import SharePanel from './SharePanel';
+import { ChevronDown, ChevronUp, Film, ListChecks, MessageSquare, NotebookPen, X } from 'lucide-react';
 import type { TitleInfo } from './types';
 
 interface ListItem extends TitleInfo {
@@ -125,11 +126,11 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist, sha
           />
           <button className="primary" onClick={makeList} disabled={!newName.trim()}>Create list</button>
         </div>
-        {lists.length === 0 && <div className="empty"><span className="empty-icon" aria-hidden="true">📝</span><p>No lists yet. Name your first one above, like "Top horror" or "Comfort films".</p></div>}
+        {lists.length === 0 && <div className="empty"><span className="empty-icon" aria-hidden="true"><ListChecks size={34} strokeWidth={1.5} /></span><p>No lists yet. Name your first one above, like "Top horror" or "Comfort films".</p></div>}
         <ul className="list">
           {lists.map((l) => (
             <li key={l.id} className="listrow" onClick={() => openList(l.id)}>
-              <div className="noposter">📝</div>
+              <div className="noposter"><ListChecks size={20} strokeWidth={1.5} /></div>
               <div className="info">
                 <strong>{l.name}</strong>
                 <span className="hint">{l.items.length} {l.items.length === 1 ? 'title' : 'titles'}</span>
@@ -156,7 +157,7 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist, sha
           aria-label="List name"
         />
         <button className={notesOpen ? 'tab active notesbtn' : 'tab notesbtn'} onClick={() => setNotesOpen(!notesOpen)} aria-expanded={notesOpen} title="Notepad">
-          📝 Notes{open.notes.trim() && !notesOpen && <span className="notesdot" aria-label="has notes" />}
+          <NotebookPen size={15} strokeWidth={1.9} /> Notes{open.notes.trim() && !notesOpen && <span className="notesdot" aria-label="has notes" />}
         </button>
         <SharePanel
           {...share}
@@ -172,7 +173,7 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist, sha
         <aside className="notespanel">
           <div className="row notestop">
             <b>Notepad</b>
-            <button className="linkbtn" onClick={() => setNotesOpen(false)} aria-label="Close notepad">✕</button>
+            <button className="linkbtn" onClick={() => setNotesOpen(false)} aria-label="Close notepad"><X size={16} /></button>
           </div>
           <textarea
             value={open.notes}
@@ -209,15 +210,15 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist, sha
             <div className="itemrow">
               <span className="handle">⠿</span>
               <span className="num">#{n}</span>
-              {item.poster ? <img src={item.poster} alt="" /> : <div className="noposter">🎬</div>}
+              {item.poster ? <img src={item.poster} alt="" /> : <div className="noposter"><Film size={20} strokeWidth={1.5} /></div>}
               <div className="info">
                 <strong>{item.name}</strong>
-                <span className="hint">{inWatchlist(item) && <span className="wltag">In watchlist</span>}{item.kind === 'movie' ? 'Movie' : 'Series'}{item.year && ` · ${item.year}`}{item.comment && ' · 💬'}</span>
+                <span className="hint">{inWatchlist(item) && <span className="wltag">In watchlist</span>}{item.kind === 'movie' ? 'Movie' : 'Series'}{item.year && ` · ${item.year}`}{item.comment && <> · <MessageSquare size={12} className="inlineicon" aria-label="has a comment" /></>}</span>
                 <button className="more" onClick={() => setExpanded(expanded === item.id ? null : item.id)} aria-expanded={expanded === item.id}>
-                  {expanded === item.id ? '▲ Less' : '▼ More'}
+                  {expanded === item.id ? <><ChevronUp size={14} /> Less</> : <><ChevronDown size={14} /> More</>}
                 </button>
               </div>
-              <button className="del" onClick={() => removeItem(open.id, item.id)} aria-label="Remove">✕</button>
+              <button className="del" onClick={() => removeItem(open.id, item.id)} aria-label="Remove"><X size={16} /></button>
             </div>
             {expanded === item.id && (
               <div className="details">

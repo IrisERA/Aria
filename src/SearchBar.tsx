@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { searchTitles } from './search';
+import { Film, Search } from 'lucide-react';
 import type { Kind, TitleInfo } from './types';
 
 const keyOf = (t: TitleInfo) => `${t.kind}:${t.name.toLowerCase()}:${t.year ?? ''}`;
@@ -61,7 +62,7 @@ export default function SearchBar({ onPick, mine = [] }: { onPick: (t: TitleInfo
 
   return (
     <div className="search" ref={box}>
-      <span className="search-icon" aria-hidden="true">⌕</span>
+      <span className="search-icon" aria-hidden="true"><Search size={18} strokeWidth={1.9} /></span>
       <input
         value={q}
         onChange={(e) => change(e.target.value)}
@@ -87,7 +88,7 @@ export default function SearchBar({ onPick, mine = [] }: { onPick: (t: TitleInfo
             const done = added.has(keyOf(r));
             return (
               <li key={i} className={[mine && 'mine', done && 'added'].filter(Boolean).join(' ') || undefined} onClick={() => pick(r)} aria-disabled={done}>
-                {r.poster ? <img src={r.poster} alt="" /> : <div className="noposter">🎬</div>}
+                {r.poster ? <img src={r.poster} alt="" /> : <div className="noposter"><Film size={20} strokeWidth={1.5} /></div>}
                 <div className="info">
                   <strong>{r.name}</strong>
                   <span className="hint">{mine && <span className="tag">In All</span>}{r.kind === 'movie' ? 'Movie' : 'Series'}{r.year && ` · ${r.year}`}</span>

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link2 } from 'lucide-react';
 import { publishShare, shareOrCopy, shareUrl, stopShare, type SharedItem } from './share';
 
-// "🔗 Share" button for a list. Once shared, the public copy updates itself as the list changes.
+// "Share" button for a list. Once shared, the public copy updates itself as the list changes.
 export default function SharePanel({ shareId, onShareId, title, ownerName, items, signedIn, onSignIn }: {
   shareId?: string;
   onShareId: (id: string | undefined) => void;
@@ -70,7 +71,7 @@ export default function SharePanel({ shareId, onShareId, title, ownerName, items
   return (
     <div className="sharebox" ref={box}>
       <button className={shareId ? 'tab active sharebtn' : 'tab sharebtn'} onClick={() => setOpen(!open)} aria-expanded={open}>
-        🔗 {shareId ? 'Shared' : 'Share'}
+        <Link2 size={15} strokeWidth={1.9} /> {shareId ? 'Shared' : 'Share'}
       </button>
       {open && (
         <div className="sharepop" role="dialog" aria-label="Share this list">

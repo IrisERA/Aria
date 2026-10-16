@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { ListChecks, Search, Star } from 'lucide-react';
 
 const CARDS = [
-  { icon: '🔍', title: 'Find anything', text: 'Search any movie or series and tap it to add it to your list.' },
-  { icon: '⭐', title: 'Make it yours', text: 'Rate it, favourite it, or save it to your Watchlist for later. Tap ▼ More on any title for the details.' },
-  { icon: '📝', title: 'Keep it safe', text: 'Build your own lists, and sign in so your list follows you to every device.' },
+  { icon: Search, title: 'Find anything', text: 'Search any movie or series and tap it to add it to your list.' },
+  { icon: Star, title: 'Make it yours', text: 'Rate it, favourite it, or save it to your Watchlist for later. Tap More on any title for the details.' },
+  { icon: ListChecks, title: 'Keep it safe', text: 'Build your own lists, and sign in so your list follows you to every device.' },
 ];
 
 const KEY = 'aria.welcomed';
@@ -36,7 +37,7 @@ export default function Welcome({ onClose, onSignIn, signedIn }: { onClose: () =
       <div className="welcome" role="dialog" aria-modal="true" aria-label="Welcome to ARIA">
         <button className="linkbtn skip" onClick={() => done()}>Skip</button>
         {step === 0 && <img src="/icon-192.png" alt="" className="welcome-logo" />}
-        <div className="welcome-icon" aria-hidden="true">{card.icon}</div>
+        <div className="welcome-icon" aria-hidden="true"><card.icon size={34} strokeWidth={1.6} /></div>
         <h2>{step === 0 ? 'Welcome to ARIA' : card.title}</h2>
         <p>{step === 0 ? `${card.title}. ${card.text}` : card.text}</p>
         <div className="dots" aria-hidden="true">

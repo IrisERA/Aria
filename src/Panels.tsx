@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Bell, Info, Palette, Shield, SlidersHorizontal, Smartphone, User, X, type LucideIcon } from 'lucide-react';
 import { ACCENTS, defaults, SIZE_LABELS, type Settings, type StartTab, type Theme } from './settings';
 import { authReady, googleButtonReady, renderGoogleButton, type useAuth } from './auth';
 import type { SyncState } from './sync';
@@ -9,14 +10,14 @@ import InstallButton, { desktopAppVersion, isInstalled } from './InstallButton';
 
 export type Section = 'account' | 'customise' | 'lists' | 'notifications' | 'app' | 'data' | 'about';
 
-const SECTIONS: { id: Section; label: string; icon: string }[] = [
-  { id: 'account', label: 'Account', icon: '👤' },
-  { id: 'customise', label: 'Customise', icon: '🎨' },
-  { id: 'lists', label: 'Lists & sorting', icon: '📋' },
-  { id: 'notifications', label: 'Notifications', icon: '🔔' },
-  { id: 'app', label: 'Get the app', icon: '📲' },
-  { id: 'data', label: 'Privacy & data', icon: '🔒' },
-  { id: 'about', label: 'About', icon: 'ℹ️' },
+const SECTIONS: { id: Section; label: string; icon: LucideIcon }[] = [
+  { id: 'account', label: 'Account', icon: User },
+  { id: 'customise', label: 'Customise', icon: Palette },
+  { id: 'lists', label: 'Lists & sorting', icon: SlidersHorizontal },
+  { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'app', label: 'Get the app', icon: Smartphone },
+  { id: 'data', label: 'Privacy & data', icon: Shield },
+  { id: 'about', label: 'About', icon: Info },
 ];
 
 type Update = (p: Partial<Settings>) => void;
@@ -171,9 +172,9 @@ function ListSettings({ settings, update }: { settings: Settings; update: Update
         <option value="all">All</option>
         <option value="movie">Movies</option>
         <option value="series">Series</option>
-        <option value="favorites">★ Favorites</option>
-        <option value="want">🍿 Watchlist</option>
-        <option value="lists">📝 My lists</option>
+        <option value="favorites">Favorites</option>
+        <option value="want">Watchlist</option>
+        <option value="lists">My lists</option>
       </select>
     </Row>
     <Row label="Sort All by">
@@ -312,7 +313,7 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
 
 function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
-    <p className="about"><b>ARIA</b> · version 1.0.16</p>
+    <p className="about"><b>ARIA</b> · version 1.0.17</p>
     <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
     <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
     <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">
@@ -349,12 +350,12 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Settings">
         <header className="sheet-head">
           <h2>Settings</h2>
-          <button className="icon" onClick={onClose} aria-label="Close">✕</button>
+          <button className="icon" onClick={onClose} aria-label="Close"><X size={18} /></button>
         </header>
         <nav className="sheet-nav">
           {SECTIONS.map((s) => (
             <button key={s.id} className={section === s.id ? 'navbtn on' : 'navbtn'} onClick={() => setSection(s.id)}>
-              <span aria-hidden="true">{s.icon}</span> {s.label}
+              <s.icon size={16} strokeWidth={1.9} aria-hidden="true" /> {s.label}
             </button>
           ))}
         </nav>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Stars from './Stars';
+import { Film, Link2 } from 'lucide-react';
 import { loadShare, type SharedList } from './share';
 import type { TitleInfo } from './types';
 
@@ -38,7 +39,7 @@ export default function SharedView({ id, onWant, alreadyHave }: {
       {list === undefined && !failed && <p className="hint">Loading the list…</p>}
       {(failed || list === null) && (
         <div className="empty">
-          <span className="empty-icon" aria-hidden="true">🔗</span>
+          <span className="empty-icon" aria-hidden="true"><Link2 size={34} strokeWidth={1.5} /></span>
           <p>{failed ? "Couldn't load this list. Check your internet and try again." : 'This list is no longer shared, or the link is wrong.'}</p>
         </div>
       )}
@@ -55,7 +56,7 @@ export default function SharedView({ id, onWant, alreadyHave }: {
               <li key={i} className="item">
                 <div className="itemrow">
                   <span className="num">#{i + 1}</span>
-                  {t.poster && /^https:\/\//.test(t.poster) ? <img src={t.poster} alt="" referrerPolicy="no-referrer" /> : <div className="noposter">🎬</div>}
+                  {t.poster && /^https:\/\//.test(t.poster) ? <img src={t.poster} alt="" referrerPolicy="no-referrer" /> : <div className="noposter"><Film size={20} strokeWidth={1.5} /></div>}
                   <div className="info">
                     <strong>{t.name}</strong>
                     <span className="hint">
