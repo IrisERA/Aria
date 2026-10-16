@@ -123,7 +123,7 @@ export default function Lists({ store, mine, openId, setOpenId }: {
           />
           <button className="primary" onClick={makeList} disabled={!newName.trim()}>Create list</button>
         </div>
-        {lists.length === 0 && <p className="hint">No lists yet. Give your first list a name above.</p>}
+        {lists.length === 0 && <div className="empty"><span className="empty-icon" aria-hidden="true">📝</span><p>No lists yet. Name your first one above, like "Top horror" or "Comfort films".</p></div>}
         <ul className="list">
           {lists.map((l) => (
             <li key={l.id} className="listrow" onClick={() => openList(l.id)}>

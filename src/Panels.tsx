@@ -275,11 +275,14 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
   </>);
 }
 
-function About() {
+function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
-    <p className="about"><b>ARIA</b> · version 1.0</p>
+    <p className="about"><b>ARIA</b> · version 1.0.1</p>
     <p className="hint">Track the movies and series you love. Free, with zero ads.</p>
     <p className="hint">Search results from IMDb, iTunes and TVmaze.</p>
+    <Row label="Welcome tour" hint="The quick intro shown the first time you open ARIA.">
+      <button onClick={onShowWelcome}>Show again</button>
+    </Row>
     <Row label="Help & feedback" hint="aria.app.help@protonmail.com">
       <a className="linkbtn" href="mailto:aria.app.help@protonmail.com?subject=ARIA">Email us ›</a>
     </Row>
@@ -292,7 +295,7 @@ function About() {
   </>);
 }
 
-export function SettingsSheet({ section, setSection, onClose, settings, update, stats, auth, sync, onClear, trash }: {
+export function SettingsSheet({ section, setSection, onClose, settings, update, stats, auth, sync, onClear, trash, onShowWelcome }: {
   section: Section;
   setSection: (s: Section) => void;
   onClose: () => void;
@@ -303,6 +306,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
   sync: SyncState;
   onClear: () => void;
   trash: Trash;
+  onShowWelcome: () => void;
 }) {
   // Drawn straight into <body> so nothing on the page can show through it.
   return createPortal(
@@ -326,7 +330,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
           {section === 'lists' && <ListSettings settings={settings} update={update} />}
           {section === 'notifications' && <Notifications />}
           {section === 'data' && <Data onClear={onClear} trash={trash} />}
-          {section === 'about' && <About />}
+          {section === 'about' && <About onShowWelcome={onShowWelcome} />}
         </div>
       </div>
     </div>,

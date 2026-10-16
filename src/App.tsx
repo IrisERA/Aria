@@ -10,6 +10,7 @@ import { authReady, useAuth } from './auth';
 import { useCloudSync } from './sync';
 import { greeting } from './greeting';
 import { funFacts } from './facts';
+import Welcome, { hasSeenWelcome } from './Welcome';
 import { hasGenre, useGenreBackfill } from './genres';
 import { groupByGenre, groupTitles } from './grouping';
 import { SettingsSheet, type Section } from './Panels';
@@ -41,6 +42,7 @@ export default function App() {
   const [hello] = useState(() => greeting(''));
   const greet = greeting(name);
   const [genre, setGenre] = useState<string | null>(null);
+  const [welcome, setWelcome] = useState(() => !hasSeenWelcome());
   const [guestNoteHidden, setGuestNoteHidden] = useState(() => {
     try { return localStorage.getItem('aria.guestNoteHidden') === '1'; } catch { return false; }
   });
@@ -154,9 +156,13 @@ export default function App() {
               : (name || '?')[0].toUpperCase()}
           </button>
         </div>
+        {welcome && !panel && (
+          <Welcome signedIn={!!auth.user} onClose={() => setWelcome(false)} onSignIn={() => openSettings('account')} />
+        )}
         {panel && (
           <SettingsSheet section={panel} setSection={openSettings} onClose={() => setPanel(null)}
-            settings={settings} update={update} stats={st} auth={{ ...auth, signOut }} sync={sync} onClear={clearList} trash={{ deleted, restore, purge }} />
+            settings={settings} update={update} stats={st} auth={{ ...auth, signOut }} sync={sync} onClear={clearList} trash={{ deleted, restore, purge }}
+            onShowWelcome={() => { setPanel(null); setWelcome(true); }} />
         )}
       </header>
 
@@ -202,10 +208,22 @@ export default function App() {
 
       <section className="content">
       {filter !== 'lists' && <SearchBar mine={filter === 'want' ? [] : undefined} onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))} />}
-      {filter === 'want' && <p className="hint">Search above to add something you want to watch.</p>}
+      {filter === 'want' && wants.length > 0 && <p className="hint">Search above to add something you want to watch.</p>}
 
       {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} /> : (<>
-      {shown.length === 0 && filter !== 'want' && <p className="hint">Your list is empty. Search for a movie or series above to add it.</p>}
+      {shown.length === 0 && (
+        <div className="empty">
+          <span className="empty-icon" aria-hidden="true">{{ all: '🎬', movie: '🎥', series: '📺', favorites: '★', want: '🍿', lists: '📝' }[filter]}</span>
+          <p>{{
+            all: 'Nothing here yet. Search above for a movie or series you\'ve watched and tap it to add it.',
+            movie: 'No movies yet. Search above to add one.',
+            series: 'No series yet. Search above to add one.',
+            favorites: 'No favourites yet. Tap the ☆ next to any title to make it a favourite.',
+            want: 'Nothing here yet. Search above to save something for later.',
+            lists: '',
+          }[filter]}</p>
+        </div>
+      )}
       {inTab.length > 0 && (
         <div className="row sortrow">
           <span className="hint">Sort:</span>
