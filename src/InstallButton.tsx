@@ -3,6 +3,14 @@ import { useEffect, useState } from 'react';
 // "Install ARIA": installs the website as an app where the browser allows it (Chrome, Edge, Android),
 // and otherwise explains how for that browser. Hidden once ARIA runs as an installed app.
 
+// Fill these in once ARIA is on the Google Play Store / has a signed Windows download.
+// On Android the Install button then opens the Play Store instead.
+const PLAY_STORE_URL = '';
+const WINDOWS_DOWNLOAD_URL = 'https://github.com/IrisERA/Aria/releases/latest';
+
+const isAndroid = () => /Android/.test(navigator.userAgent);
+const isFirefoxDesktop = () => /Firefox\//.test(navigator.userAgent) && !/Android|Mobile/.test(navigator.userAgent);
+
 export const isInstalled = () =>
   matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true || /Electron/.test(navigator.userAgent);
 
@@ -16,7 +24,7 @@ function howTo(): string {
   if (/Firefox\//.test(ua)) {
     return /Android/.test(ua)
       ? 'In Firefox: tap the ⋮ menu, then "Install" or "Add to Home screen".'
-      : 'Firefox on computers can\'t install websites as apps. Open aria-fawn-seven.vercel.app in Chrome or Edge, then tap Install ARIA there.';
+      : 'Firefox on computers can\'t install websites as apps. Download the Windows app below, or open aria-fawn-seven.vercel.app in Chrome or Edge and tap Install ARIA there.';
   }
   if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) return 'In Safari on a Mac: File menu → "Add to Dock".';
   if (/Android/.test(ua)) return 'Tap the ⋮ menu in your browser, then "Install app" or "Add to Home screen".';
@@ -51,6 +59,7 @@ export default function InstallButton({ big = false }: { big?: boolean }) {
   if (done) return big ? <p className="hint">✓ ARIA is installed on this device.</p> : null;
 
   async function install() {
+    if (PLAY_STORE_URL && isAndroid()) return void window.open(PLAY_STORE_URL, '_blank', 'noopener');
     if (!deferred) return setHelp(!help);
     deferred.prompt();
     const { outcome } = await deferred.userChoice;
@@ -61,8 +70,13 @@ export default function InstallButton({ big = false }: { big?: boolean }) {
 
   return (
     <div className="installbox">
-      <button className={big ? 'primary' : 'installbtn'} onClick={install}>⬇ Install ARIA</button>
+      <button className={big ? 'primary' : 'installbtn'} onClick={install}>
+        {PLAY_STORE_URL && isAndroid() ? '▶ Get it on Google Play' : '⬇ Install ARIA'}
+      </button>
       {help && <p className="hint installhelp">{howTo()}</p>}
+      {help && isFirefoxDesktop() && /Windows/.test(navigator.userAgent) && (
+        <a className="installbtn" href={WINDOWS_DOWNLOAD_URL} target="_blank" rel="noopener">⬇ Download for Windows</a>
+      )}
     </div>
   );
 }
