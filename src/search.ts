@@ -24,10 +24,10 @@ async function tmdb(q: string): Promise<TitleInfo[]> {
     }));
 }
 
-// A slow source shouldn't hold up the others: give each one a few seconds at most.
+// Results show as each source answers, so a slow one only adds to the list later. TVmaze can take ~12s.
 function get(url: string) {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 4000);
+  const timer = setTimeout(() => ctl.abort(), 15000);
   return fetch(url, { signal: ctl.signal }).finally(() => clearTimeout(timer));
 }
 
@@ -138,6 +138,8 @@ function rank(all: TitleInfo[], q: string): TitleInfo[] {
   return merged
     .map((t, i) => ({ t, s: score(t, q), i }))
     .sort((a, b) => b.s - a.s || a.i - b.i)
+    // Hide titles that share no words with the search, unless nothing matches well (e.g. a typo).
+    .filter((x, _, all) => x.s >= 0.5 || all[0].s < 1)
     .slice(0, 12)
     .map(({ t }) => t);
 }
