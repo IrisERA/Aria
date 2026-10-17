@@ -185,11 +185,11 @@ export default function App() {
         </div>
         <div className="corner">
           <button className="icon" aria-label="Settings" onClick={() => openSettings(lastSection)}><SettingsIcon size={18} strokeWidth={1.9} /></button>
-          {!phone && <button className="avatar" aria-label="Account" title={SYNC_TEXT[sync]} onClick={() => openSettings('account')}>
+          <button className="avatar" aria-label="Account" title={SYNC_TEXT[sync]} onClick={() => openSettings('account')}>
             {auth.user?.photo
               ? <img src={auth.user.photo} alt="" referrerPolicy="no-referrer" />
               : (name || '?')[0].toUpperCase()}
-          </button>}
+          </button>
         </div>
         {welcome && !panel && auth.loaded && (
           <Welcome signedIn={!!auth.user} onClose={() => setWelcome(false)} onSignIn={() => openSettings('account')} />
@@ -535,7 +535,9 @@ export default function App() {
             );
           })}
           <button className="navitem" onClick={() => openSettings('account')}>
-            {auth.user?.photo ? <img src={auth.user.photo} alt="" referrerPolicy="no-referrer" className="navavatar" /> : <User size={22} strokeWidth={1.8} />}
+            {auth.user?.photo ? <img src={auth.user.photo} alt="" referrerPolicy="no-referrer" className="navavatar" />
+              : auth.user ? <span className="navavatar initial">{(name || '?')[0].toUpperCase()}</span>
+              : <User size={22} strokeWidth={1.8} />}
             <span>You</span>
           </button>
         </nav>
