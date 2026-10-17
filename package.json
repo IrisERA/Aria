@@ -65,6 +65,10 @@
         "repo": "Aria",
         "releaseType": "release"
       }
-    ]
+    ],
+    "releaseInfo": {
+      "releaseName": "ARIA M v1.1.0",
+      "releaseNotes": "Mobile redesign: bottom tab bar, tap a title for details, Sort & filter panel, move up/down and add to lists on phones, quick suggestions for new users. PC layout unchanged."
+    }
   }
 }
