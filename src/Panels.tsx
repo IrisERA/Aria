@@ -302,14 +302,14 @@ function Data({ onClear, trash }: { onClear: () => void; trash: Trash }) {
   </>);
 }
 
-function About({ onShowWelcome, email }: { onShowWelcome: () => void; email?: string }) {
+function About({ onShowWelcome }: { onShowWelcome: () => void }) {
   return (<>
     <div className="setting column">
       <span className="setting-text">
         <span>Send feedback</span>
         <span className="hint">Found a bug or have an idea? Tell us here.</span>
       </span>
-      <Feedback email={email} />
+      <Feedback />
     </div>
     <Row label="Welcome tour" hint="The quick intro from your first visit.">
       <button onClick={onShowWelcome}>Show again</button>
@@ -362,7 +362,7 @@ export function SettingsSheet({ section, setSection, onClose, settings, update, 
           {section === 'lists' && <ListSettings settings={settings} update={update} />}
           {section === 'app' && <GetApp />}
           {section === 'data' && <Data onClear={onClear} trash={trash} />}
-          {section === 'about' && <About onShowWelcome={onShowWelcome} email={auth.user?.email} />}
+          {section === 'about' && <About onShowWelcome={onShowWelcome} />}
         </div>
       </div>
     </div>,

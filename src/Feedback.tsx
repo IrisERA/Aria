@@ -9,6 +9,31 @@ const KINDS: { id: Kind; label: string; icon: typeof Bug }[] = [
   { id: 'other', label: 'Other', icon: MessageCircle },
 ];
 const HELP_EMAIL = 'aria.app.help@protonmail.com';
+// Web3Forms access key: each message is also emailed to the help inbox. This key is public by design.
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY as string | undefined;
+
+// Emails the feedback to the help inbox. Returns true if it was sent.
+async function emailIt(kind: string, message: string, replyTo: string) {
+  if (!WEB3FORMS_KEY) return false;
+  try {
+    const r = await fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: `ARIA feedback: ${kind}`,
+        from_name: 'ARIA feedback',
+        message,
+        ...(replyTo ? { email: replyTo, replyto: replyTo } : {}),
+        version: __APP_VERSION__,
+        device: device(),
+      }),
+    });
+    return (await r.json()).success === true;
+  } catch {
+    return false;
+  }
+}
 
 const device = () => {
   const ua = navigator.userAgent;
@@ -18,25 +43,28 @@ const device = () => {
 };
 
 // "Send feedback": saved to the feedback table in Supabase (see supabase/feedback.sql).
-export default function Feedback({ email: accountEmail }: { email?: string }) {
+export default function Feedback() {
   const [kind, setKind] = useState<Kind>('idea');
   const [message, setMessage] = useState('');
-  const [email, setEmail] = useState(accountEmail ?? '');
+  const [email, setEmail] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
 
   async function send() {
     const text = message.trim();
-    if (!text || !supabase) return;
+    if (!text) return;
     setState('sending');
-    const { error } = await supabase.from('feedback').insert({
+    const label = KINDS.find((k) => k.id === kind)!.label;
+    const mailed = await emailIt(label, text, email.trim());
+    const { error } = supabase ? await supabase.from('feedback').insert({
       kind,
       message: text.slice(0, 2000),
       email: email.trim().slice(0, 200) || null,
       app_version: __APP_VERSION__,
       device: device(),
-    });
-    setState(error ? 'failed' : 'sent');
-    if (!error) setMessage('');
+    }) : { error: true };
+    const ok = mailed || !error;
+    setState(ok ? 'sent' : 'failed');
+    if (ok) setMessage('');
   }
 
   if (state === 'sent') {
@@ -66,7 +94,8 @@ export default function Feedback({ email: accountEmail }: { email?: string }) {
         placeholder={kind === 'bug' ? 'What happened, and what did you expect?' : kind === 'idea' ? 'What would make ARIA better for you?' : 'Tell us anything…'}
         aria-label="Your feedback"
       />
-      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email (optional, if you'd like a reply)" aria-label="Your email" />
+      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email (optional)" aria-label="Your email, optional" />
+      <p className="hint">No email needed. Only add one if you'd like a reply.</p>
       <div className="row">
         <button className="primary" disabled={!message.trim() || state === 'sending'} onClick={send}>
           <Send size={14} /> {state === 'sending' ? 'Sending…' : 'Send feedback'}
