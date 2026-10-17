@@ -7,7 +7,10 @@ import Stars from './Stars';
 import Lists, { useLists } from './Lists';
 import { groupColor, useSettings } from './settings';
 import { authReady, useAuth } from './auth';
-import { Check, ChevronDown, ChevronUp, Film, ListChecks, Popcorn, Settings as SettingsIcon, Star, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, Film, Library, ListChecks, Popcorn, Settings as SettingsIcon, SlidersHorizontal, Star, Trash2, User, X } from 'lucide-react';
+import { useIsPhone } from './useIsPhone';
+import Sheet from './Sheet';
+import TitleSheet from './TitleSheet';
 import { ICON, TAB_ICONS } from './icons';
 import { useCloudSync } from './sync';
 import { greeting } from './greeting';
@@ -43,6 +46,10 @@ export default function App() {
   const [overId, setOverId] = useState<string | null>(null);
   const [pickKey, setPickKey] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const phone = useIsPhone();
+  const [sheetId, setSheetId] = useState<string | null>(null); // title opened in the phone sheet
+  const [sortSheet, setSortSheet] = useState(false);
+  const [seed, setSeed] = useState<{ text: string; n: number }>();
   // The greeting's line is picked once per visit so it doesn't change while you use ARIA.
   const [hello] = useState(() => greeting(''));
   const greet = greeting(name);
@@ -165,7 +172,7 @@ export default function App() {
   const shareProps = { ownerName: firstName, signedIn: !!auth.user, onSignIn: () => openSettings('account') };
 
   return (
-    <main className="card app">
+    <main className={phone ? 'card app phone' : 'card app'}>
       <aside className="side">
       <header className="top">
         <div>
@@ -174,15 +181,15 @@ export default function App() {
             <span className="hello">{greet.hello}</span>
             <span className="line">{hello.line}</span>
           </p>
-          <InstallButton />
+          {!phone && <InstallButton />}
         </div>
         <div className="corner">
           <button className="icon" aria-label="Settings" onClick={() => openSettings(lastSection)}><SettingsIcon size={18} strokeWidth={1.9} /></button>
-          <button className="avatar" aria-label="Account" title={SYNC_TEXT[sync]} onClick={() => openSettings('account')}>
+          {!phone && <button className="avatar" aria-label="Account" title={SYNC_TEXT[sync]} onClick={() => openSettings('account')}>
             {auth.user?.photo
               ? <img src={auth.user.photo} alt="" referrerPolicy="no-referrer" />
               : (name || '?')[0].toUpperCase()}
-          </button>
+          </button>}
         </div>
         {welcome && !panel && auth.loaded && (
           <Welcome signedIn={!!auth.user} onClose={() => setWelcome(false)} onSignIn={() => openSettings('account')} />
@@ -252,7 +259,17 @@ export default function App() {
             return t.status === 'want' ? { label: 'On your watchlist', done: false } : { label: 'In your list', done: true };
           }}
           onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))}
+          seed={seed}
         />
+      )}
+      {phone && (filter === 'all' || filter === 'movie' || filter === 'series' || filter === 'favorites') && (
+        <div className="chips" role="tablist" aria-label="Show">
+          {(['all', 'movie', 'series', 'favorites'] as Filter[]).map((f) => (
+            <button key={f} role="tab" aria-selected={filter === f} className={filter === f ? 'chip on' : 'chip'} onClick={() => setFilter(f)}>
+              {{ all: 'All', movie: 'Movies', series: 'Series', favorites: 'Favorites' }[f as 'all']}
+            </button>
+          ))}
+        </div>
       )}
       {filter === 'want' && wants.length > 0 && <p className="hint">Search above to add something you want to watch.</p>}
 
@@ -269,9 +286,25 @@ export default function App() {
             want: 'Nothing here yet. Search above to save something for later.',
             lists: '',
           }[filter]}</p>
+          {(filter === 'all' || filter === 'want') && titles.length === 0 && (
+            <div className="suggest">
+              <span className="hint">Try one:</span>
+              {['Dune', 'Breaking Bad', 'Stranger Things', 'The Office', 'Interstellar', 'Oppenheimer'].map((s) => (
+                <button key={s} className="chip" onClick={() => setSeed({ text: s, n: Date.now() })}>{s}</button>
+              ))}
+            </div>
+          )}
         </div>
       )}
-      {inTab.length > 0 && (
+      {phone && inTab.length > 0 && (
+        <div className="row phonetools">
+          <span className="hint">{shown.length} {shown.length === 1 ? 'title' : 'titles'}{genre && tabGenres.includes(genre) ? ` · ${genre}` : ''}</span>
+          <button className={genre && tabGenres.includes(genre) ? 'chip on' : 'chip'} onClick={() => setSortSheet(true)}>
+            <SlidersHorizontal size={14} /> Sort &amp; filter
+          </button>
+        </div>
+      )}
+      {!phone && inTab.length > 0 && (
         <div className="row sortrow">
           <span className="hint">Sort:</span>
           <button className={settings.sort === 'mine' ? 'tab active' : 'tab'} onClick={() => update({ sort: 'mine' })}>My order</button>
@@ -290,7 +323,7 @@ export default function App() {
           )}
         </div>
       )}
-      {shown.length > 0 && (
+      {!phone && shown.length > 0 && (
         <p className="hint draghint">
           {settings.sort === 'mine'
             ? 'Drag ⠿ to put them in your order, or drag onto a list at the bottom to add it there.'
@@ -341,7 +374,8 @@ export default function App() {
           return (
             <li
               key={t.id}
-              draggable={!open}
+              draggable={!open && !phone}
+              onClick={phone ? (e) => { if (!(e.target as Element).closest('button')) setSheetId(t.id); } : undefined}
               className={['item', open && 'open', dragId === t.id && 'dragging', settings.sort === 'mine' && overId === t.id && dragId !== t.id && 'over'].filter(Boolean).join(' ')}
               style={color ? { borderLeft: `4px solid ${color}` } : undefined}
               onDragStart={() => setDragId(t.id)}
@@ -350,7 +384,7 @@ export default function App() {
               onDragEnd={() => { setDragId(null); setOverId(null); setDropListId(null); }}
             >
               <div className="itemrow">
-              <span className="handle">⠿</span>
+              {!phone && <span className="handle">⠿</span>}
               {settings.showPosters && (t.poster ? <img src={t.poster} alt="" /> : <div className="noposter"><Film size={20} strokeWidth={1.5} /></div>)}
               <div className="info">
                 <strong>
@@ -368,15 +402,19 @@ export default function App() {
                   {last && ` · last ${new Date(last.at).toLocaleDateString()}`}
                 </span>
                 {t.rating && <Stars value={t.rating} size={14} />}
-                {t.description && !settings.compact && !open && <span className="desc">{t.description}</span>}
-                <button className="more" onClick={() => setExpanded(open ? null : t.id)} aria-expanded={open}>
-                  {open ? <><ChevronUp size={14} /> Less</> : <><ChevronDown size={14} /> More</>}
-                </button>
+                {t.description && !settings.compact && !open && !phone && <span className="desc">{t.description}</span>}
+                {phone ? (
+                  <button className="more" onClick={() => setSheetId(t.id)} aria-label={`Open ${t.name}`}><ChevronDown size={14} /> Details</button>
+                ) : (
+                  <button className="more" onClick={() => setExpanded(open ? null : t.id)} aria-expanded={open}>
+                    {open ? <><ChevronUp size={14} /> Less</> : <><ChevronDown size={14} /> More</>}
+                  </button>
+                )}
               </div>
               {filter === 'want' && <button className="primary quick" onClick={() => logWatch(t, 'manual', true)}><Check size={14} /> Watched</button>}
-              <button className="del" onClick={() => removeTitle(t.id, t.name)} aria-label="Remove"><X size={16} /></button>
+              {!phone && <button className="del" onClick={() => removeTitle(t.id, t.name)} aria-label="Remove"><X size={16} /></button>}
               </div>
-              {open && (
+              {open && !phone && (
                 <div className="details">
                   <h4>About</h4>
                   {!!t.genres?.length && <div className="genres">{t.genres.map((g) => <span key={g} className="genre">{g}</span>)}</div>}
@@ -432,6 +470,76 @@ export default function App() {
       )}
       </>)}
       </section>
+
+      {phone && sortSheet && (
+        <Sheet title="Sort & filter" onClose={() => setSortSheet(false)}>
+          <h4>Sort</h4>
+          <div className="optionlist">
+            {([['mine', 'My order'], ['az', 'A–Z, series together'], ['genre', 'By genre']] as const).map(([v, label]) => (
+              <button key={v} className={settings.sort === v ? 'option on' : 'option'} onClick={() => update({ sort: v })}>
+                {label}{settings.sort === v && <Check size={16} />}
+              </button>
+            ))}
+          </div>
+          {tabGenres.length > 0 && (<>
+            <h4>Genre</h4>
+            <div className="row wrap">
+              <button className={!genre || !tabGenres.includes(genre) ? 'chip on' : 'chip'} onClick={() => setGenre(null)}>All genres</button>
+              {tabGenres.map((g) => (
+                <button key={g} className={genre === g ? 'chip on' : 'chip'} onClick={() => setGenre(genre === g ? null : g)}>{g} <span>{genreCounts.get(g)}</span></button>
+              ))}
+            </div>
+          </>)}
+          <button className="primary sheetdone" onClick={() => setSortSheet(false)}>Done</button>
+        </Sheet>
+      )}
+
+      {phone && sheetId && (() => {
+        const t = titles.find((x) => x.id === sheetId);
+        if (!t) return null;
+        const i = shown.findIndex((x) => x.id === t.id);
+        const canMove = settings.sort === 'mine' && filter !== 'want' && i >= 0 ? { up: i > 0, down: i < shown.length - 1 } : null;
+        const same = (a: { name: string; kind: string }) => a.name.toLowerCase() === t.name.toLowerCase() && a.kind === t.kind;
+        return (
+          <TitleSheet
+            t={t}
+            onClose={() => setSheetId(null)}
+            canMove={canMove}
+            onMove={(dir) => { const other = shown[i + dir]; if (other) move(t.id, other.id); }}
+            lists={lists.lists.map((l) => ({ id: l.id, name: l.name, has: l.items.some(same) }))}
+            onAddToList={(id) => lists.addItem(id, t)}
+            onFavorite={() => toggleFavorite(t.id)}
+            onRate={(r) => setRating(t.id, r)}
+            onWatched={() => logWatch(t)}
+            onUndoWatch={() => undoWatch(t.id)}
+            onWatchlist={(on) => setWant(t.id, on)}
+            onRemove={() => { setSheetId(null); removeTitle(t.id, t.name); }}
+            removeLabel={filter === 'want' ? 'Remove from watchlist' : 'Remove from my list'}
+          />
+        );
+      })()}
+
+      {phone && (
+        <nav className="bottomnav" aria-label="Main">
+          {([
+            ['all', 'My list', Library],
+            ['want', 'Watchlist', Popcorn],
+            ['lists', 'Lists', ListChecks],
+          ] as const).map(([f, label, Icon]) => {
+            const on = f === 'all' ? ['all', 'movie', 'series', 'favorites'].includes(filter) : filter === f;
+            return (
+              <button key={f} className={on ? 'navitem on' : 'navitem'} aria-current={on ? 'page' : undefined} onClick={() => setFilter(f)}>
+                <Icon size={22} strokeWidth={on ? 2.2 : 1.8} />
+                <span>{label}{f === 'want' && wants.length > 0 ? ` (${wants.length})` : ''}</span>
+              </button>
+            );
+          })}
+          <button className="navitem" onClick={() => openSettings('account')}>
+            {auth.user?.photo ? <img src={auth.user.photo} alt="" referrerPolicy="no-referrer" className="navavatar" /> : <User size={22} strokeWidth={1.8} />}
+            <span>You</span>
+          </button>
+        </nav>
+      )}
     </main>
   );
 }

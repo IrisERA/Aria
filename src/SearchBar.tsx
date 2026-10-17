@@ -11,10 +11,11 @@ const keyOf = (t: TitleInfo) => `${t.kind}:${t.name.toLowerCase()}:${t.year ?? '
 // `owned` marks results that are already added (e.g. "In your list") so nobody adds them twice.
 export type Owned = { label: string; done: boolean } | null;
 
-export default function SearchBar({ onPick, mine = [], owned }: {
+export default function SearchBar({ onPick, mine = [], owned, seed }: {
   onPick: (t: TitleInfo) => void;
   mine?: TitleInfo[];
   owned?: (t: TitleInfo) => Owned;
+  seed?: { text: string; n: number }; // fills in the search (e.g. a suggestion was tapped)
 }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState<TitleInfo[]>([]);
@@ -24,6 +25,14 @@ export default function SearchBar({ onPick, mine = [], owned }: {
   const [open, setOpen] = useState(false);
   const [added, setAdded] = useState<Set<string>>(new Set());
   const box = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!seed) return;
+    setQ(seed.text);
+    setOpen(true);
+    box.current?.querySelector('input')?.focus();
+    box.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [seed?.n]);
 
   useEffect(() => {
     if (q.trim().length < 2) return setResults([]);

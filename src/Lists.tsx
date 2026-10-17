@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import SearchBar from './SearchBar';
 import EnterInput from './EnterInput';
 import SharePanel from './SharePanel';
-import { ChevronDown, ChevronUp, Film, ListChecks, MessageSquare, NotebookPen, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, Film, ListChecks, MessageSquare, NotebookPen, X } from 'lucide-react';
 import type { TitleInfo } from './types';
 
 interface ListItem extends TitleInfo {
@@ -226,6 +226,11 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist, sha
             </div>
             {expanded === item.id && (
               <div className="details">
+                <div className="row moverow">
+                  <span className="hint">Position #{n} of {last}</span>
+                  <button className="iconbtn" disabled={n === 1} onClick={() => moveItem(open.id, item.id, open.items[n - 2].id)} aria-label="Move up"><ArrowUp size={18} /></button>
+                  <button className="iconbtn" disabled={n === last} onClick={() => moveItem(open.id, item.id, open.items[n].id)} aria-label="Move down"><ArrowDown size={18} /></button>
+                </div>
                 <h4>About</h4>
                 {!!item.genres?.length && <div className="genres">{item.genres.map((g) => <span key={g} className="genre">{g}</span>)}</div>}
                 <p className="fulldesc">{item.description || 'No description yet.'}</p>
