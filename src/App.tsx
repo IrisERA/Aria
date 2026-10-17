@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTitles } from './store';
 import { noopDetector } from './detection';
 import { rewatchPick, stats, streak } from './insights';
@@ -10,18 +10,20 @@ import { authReady, useAuth } from './auth';
 import { Check, ChevronDown, ChevronUp, Film, Library, ListChecks, Popcorn, Settings as SettingsIcon, SlidersHorizontal, Star, Trash2, User, X } from 'lucide-react';
 import { useIsPhone } from './useIsPhone';
 import Sheet from './Sheet';
-import TitleSheet from './TitleSheet';
 import { ICON, TAB_ICONS } from './icons';
 import { useCloudSync } from './sync';
 import { greeting } from './greeting';
 import { funFacts } from './facts';
 import Welcome, { hasSeenWelcome } from './Welcome';
 import InstallButton from './InstallButton';
-import SharedView from './SharedView';
 import { sharedIdFromPath } from './share';
 import { hasGenre, useGenreBackfill } from './genres';
 import { groupByGenre, groupTitles } from './grouping';
-import { SettingsSheet, type Section } from './Panels';
+import type { Section } from './Panels';
+// Loaded only when opened, so phones download less before ARIA first appears.
+const TitleSheet = lazy(() => import('./TitleSheet'));
+const SharedView = lazy(() => import('./SharedView'));
+const SettingsSheet = lazy(() => import('./Panels').then((m) => ({ default: m.SettingsSheet })));
 import { onWatchlist, type Kind, type Title } from './types';
 
 const SYNC_TEXT = {
@@ -160,11 +162,13 @@ export default function App() {
   const sharedId = sharedIdFromPath();
   if (sharedId) {
     return (
-      <SharedView
-        id={sharedId}
-        onWant={addWant}
-        alreadyHave={(t) => titles.some((x) => x.name.toLowerCase() === t.name.toLowerCase() && x.kind === t.kind)}
-      />
+      <Suspense fallback={null}>
+        <SharedView
+          id={sharedId}
+          onWant={addWant}
+          alreadyHave={(t) => titles.some((x) => x.name.toLowerCase() === t.name.toLowerCase() && x.kind === t.kind)}
+        />
+      </Suspense>
     );
   }
 
@@ -176,7 +180,7 @@ export default function App() {
       <aside className="side">
       <header className="top">
         <div>
-          <h1 className="brand"><img src="/aria-logo.png" alt="" className="logo-mark" />ARIA</h1>
+          <h1 className="brand"><img src="/logo-120.png" alt="" className="logo-mark" width="40" height="40" />ARIA</h1>
           <p className="greeting">
             <span className="hello">{greet.hello}</span>
             <span className="line">{hello.line}</span>
@@ -195,9 +199,9 @@ export default function App() {
           <Welcome signedIn={!!auth.user} onClose={() => setWelcome(false)} onSignIn={() => openSettings('account')} />
         )}
         {panel && (
-          <SettingsSheet section={panel} setSection={openSettings} onClose={() => setPanel(null)}
+          <Suspense fallback={null}><SettingsSheet section={panel} setSection={openSettings} onClose={() => setPanel(null)}
             settings={settings} update={update} stats={st} auth={{ ...auth, signOut }} sync={sync} onClear={clearList} trash={{ deleted, restore, purge }}
-            onShowWelcome={() => { setPanel(null); setWelcome(true); }} />
+            onShowWelcome={() => { setPanel(null); setWelcome(true); }} /></Suspense>
         )}
       </header>
 
@@ -501,7 +505,7 @@ export default function App() {
         const canMove = settings.sort === 'mine' && filter !== 'want' && i >= 0 ? { up: i > 0, down: i < shown.length - 1 } : null;
         const same = (a: { name: string; kind: string }) => a.name.toLowerCase() === t.name.toLowerCase() && a.kind === t.kind;
         return (
-          <TitleSheet
+          <Suspense fallback={null}><TitleSheet
             t={t}
             onClose={() => setSheetId(null)}
             canMove={canMove}
@@ -515,7 +519,7 @@ export default function App() {
             onWatchlist={(on) => setWant(t.id, on)}
             onRemove={() => { setSheetId(null); removeTitle(t.id, t.name); }}
             removeLabel={filter === 'want' ? 'Remove from watchlist' : 'Remove from my list'}
-          />
+          /></Suspense>
         );
       })()}
 

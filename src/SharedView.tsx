@@ -31,7 +31,7 @@ export default function SharedView({ id, onWant, alreadyHave }: {
     <main className="card shared">
       <header className="sharedhead">
         <a href="/" className="brand brandlink" onClick={(e) => { e.preventDefault(); home(); }}>
-          <img src="/aria-logo.png" alt="" className="logo-mark" />ARIA
+          <img src="/logo-120.png" alt="" className="logo-mark" width="40" height="40" />ARIA
         </a>
         <button className="primary" onClick={home}>Make your own list</button>
       </header>
