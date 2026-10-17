@@ -56,7 +56,8 @@ export default function App() {
   const [hello] = useState(() => greeting(''));
   const greet = greeting(name);
   const [genre, setGenre] = useState<string | null>(null);
-  const [welcome, setWelcome] = useState(() => !hasSeenWelcome());
+  // No tour popup on phones: new visitors go straight to the app (the tour is still in Settings → Help).
+  const [welcome, setWelcome] = useState(() => !hasSeenWelcome() && !matchMedia('(max-width: 640px)').matches);
   const [guestNoteHidden, setGuestNoteHidden] = useState(() => {
     try { return localStorage.getItem('aria.guestNoteHidden') === '1'; } catch { return false; }
   });
