@@ -37,13 +37,14 @@ export default function SearchBar({ onPick, mine = [], owned, seed }: {
   useEffect(() => {
     if (q.trim().length < 2) return setResults([]);
     setLoading(true);
+    let stale = false; // an older search finishing late mustn't replace newer results
     const timer = setTimeout(() => {
-      searchTitles(q)
-        .then((r) => { setResults(r); setFailed(false); })
-        .catch(() => { setResults([]); setFailed(true); })
-        .finally(() => setLoading(false));
+      searchTitles(q, (r) => { if (!stale) { setResults(r); setFailed(false); } })
+        .then((r) => { if (!stale) { setResults(r); setFailed(false); } })
+        .catch(() => { if (!stale) { setResults([]); setFailed(true); } })
+        .finally(() => { if (!stale) setLoading(false); });
     }, 300);
-    return () => clearTimeout(timer);
+    return () => { stale = true; clearTimeout(timer); };
   }, [q]);
 
   // Close on a click outside the search.

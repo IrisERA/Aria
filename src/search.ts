@@ -24,9 +24,16 @@ async function tmdb(q: string): Promise<TitleInfo[]> {
     }));
 }
 
+// A slow source shouldn't hold up the others: give each one a few seconds at most.
+function get(url: string) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 4000);
+  return fetch(url, { signal: ctl.signal }).finally(() => clearTimeout(timer));
+}
+
 // IMDb's public suggestion feed: good at matching titles ("dune part 2", "toy story 3"), no key needed.
 async function imdbMovies(q: string): Promise<TitleInfo[]> {
-  const r = await fetch(`https://v3.sg.media-imdb.com/suggestion/x/${encodeURIComponent(q.toLowerCase())}.json`);
+  const r = await get(`https://v3.sg.media-imdb.com/suggestion/x/${encodeURIComponent(q.toLowerCase())}.json`);
   const data = await r.json();
   return (data.d ?? [])
     .filter((x: any) => x.qid === 'movie' || x.qid === 'tvMovie')
@@ -41,7 +48,7 @@ async function imdbMovies(q: string): Promise<TitleInfo[]> {
 
 // iTunes, used for movie descriptions. Its movie-only filter returns nothing now, so filter here.
 async function itunesMovies(q: string): Promise<TitleInfo[]> {
-  const r = await fetch(`https://itunes.apple.com/search?limit=50&term=${encodeURIComponent(q)}`);
+  const r = await get(`https://itunes.apple.com/search?limit=50&term=${encodeURIComponent(q)}`);
   const data = await r.json();
   return (data.results ?? [])
     .filter((x: any) => x.kind === 'feature-movie')
@@ -56,7 +63,7 @@ async function itunesMovies(q: string): Promise<TitleInfo[]> {
 }
 
 async function tvmazeShows(q: string): Promise<TitleInfo[]> {
-  const r = await fetch(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`);
+  const r = await get(`https://api.tvmaze.com/search/shows?q=${encodeURIComponent(q)}`);
   const data = await r.json();
   return data.slice(0, 8).map((x: any) => ({
     name: x.show.name,
@@ -108,13 +115,19 @@ function score(title: TitleInfo, query: string): number {
 const sameTitle = (a: TitleInfo, b: TitleInfo) =>
   a.kind === b.kind && normalize(a.name) === normalize(b.name) && (!a.year || !b.year || a.year === b.year);
 
-async function online(q: string): Promise<TitleInfo[]> {
+// Results show up as each source answers (onUpdate), instead of waiting for the slowest one.
+async function online(q: string, onUpdate?: (r: TitleInfo[]) => void): Promise<TitleInfo[]> {
   if (TMDB_KEY) return tmdb(q);
   const queries = [...new Set([q, variant(q)])];
-  const settled = await Promise.allSettled(queries.flatMap((x) => [imdbMovies(x), itunesMovies(x), tvmazeShows(x)]));
+  const all: TitleInfo[] = [];
+  const jobs = queries.flatMap((x) => [imdbMovies(x), itunesMovies(x), tvmazeShows(x)])
+    .map((p) => p.then((r) => { all.push(...r); if (r.length) onUpdate?.(rank(all, q)); }));
+  const settled = await Promise.allSettled(jobs);
   if (settled.every((r) => r.status === 'rejected')) throw (settled[0] as PromiseRejectedResult).reason;
-  const all = settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  return rank(all, q);
+}
 
+function rank(all: TitleInfo[], q: string): TitleInfo[] {
   // Merge duplicates, keeping whichever copy has a description / poster.
   const merged: TitleInfo[] = [];
   for (const t of all) {
@@ -129,6 +142,6 @@ async function online(q: string): Promise<TitleInfo[]> {
     .map(({ t }) => t);
 }
 
-export async function searchTitles(q: string): Promise<TitleInfo[]> {
-  return online(q);
+export async function searchTitles(q: string, onUpdate?: (r: TitleInfo[]) => void): Promise<TitleInfo[]> {
+  return online(q, onUpdate);
 }
