@@ -8,7 +8,14 @@ const keyOf = (t: TitleInfo) => `${t.kind}:${t.name.toLowerCase()}:${t.year ?? '
 // `mine` are titles the user already has; matches are shown first.
 // Results stay open after adding, so you can add several; they close when the
 // search is cleared, on Esc, or when you click somewhere else.
-export default function SearchBar({ onPick, mine = [] }: { onPick: (t: TitleInfo) => void; mine?: TitleInfo[] }) {
+// `owned` marks results that are already added (e.g. "In your list") so nobody adds them twice.
+export type Owned = { label: string; done: boolean } | null;
+
+export default function SearchBar({ onPick, mine = [], owned }: {
+  onPick: (t: TitleInfo) => void;
+  mine?: TitleInfo[];
+  owned?: (t: TitleInfo) => Owned;
+}) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState<TitleInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -49,7 +56,7 @@ export default function SearchBar({ onPick, mine = [] }: { onPick: (t: TitleInfo
   ];
 
   function pick(t: TitleInfo) {
-    if (added.has(keyOf(t))) return;
+    if (added.has(keyOf(t)) || owned?.(t)?.done) return;
     onPick(t);
     setAdded((s) => new Set(s).add(keyOf(t)));
   }
@@ -85,17 +92,25 @@ export default function SearchBar({ onPick, mine = [] }: { onPick: (t: TitleInfo
             <li className="hint">{failed ? "Can't reach the movie database. Check your internet connection." : 'No matches found.'}</li>
           )}
           {rows.map(({ t: r, mine }, i) => {
-            const done = added.has(keyOf(r));
+            const have = owned?.(r) ?? null;
+            const justAdded = added.has(keyOf(r));
+            const done = justAdded || !!have?.done;
             return (
               <li key={i} className={[mine && 'mine', done && 'added'].filter(Boolean).join(' ') || undefined} onClick={() => pick(r)} aria-disabled={done}>
                 {r.poster ? <img src={r.poster} alt="" /> : <div className="noposter"><Film size={20} strokeWidth={1.5} /></div>}
                 <div className="info">
                   <strong>{r.name}</strong>
-                  <span className="hint">{mine && <span className="tag">In All</span>}{r.kind === 'movie' ? 'Movie' : 'Series'}{r.year && ` · ${r.year}`}</span>
+                  <span className="hint">
+                    {!justAdded && have && !have.done && <span className="tag">{have.label}</span>}
+                    {mine && !have && <span className="tag">In All</span>}
+                    {r.kind === 'movie' ? 'Movie' : 'Series'}{r.year && ` · ${r.year}`}
+                  </span>
                   {r.description && <span className="desc">{r.description}</span>}
                 </div>
-                {done ? (
+                {justAdded ? (
                   <span className="added-badge" role="status"><span className="tick">✓</span> Added</span>
+                ) : have?.done ? (
+                  <span className="owned-badge"><span className="tick">✓</span> {have.label}</span>
                 ) : (
                   <span className="add-btn">+ Add</span>
                 )}

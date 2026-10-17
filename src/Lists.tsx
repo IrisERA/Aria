@@ -187,7 +187,11 @@ export default function Lists({ store, mine, openId, setOpenId, inWatchlist, sha
 
       {adding ? (
         <div className="row addrow">
-          <div className="grow"><SearchBar mine={mine} onPick={(t) => addItem(open.id, t)} /></div>
+          <div className="grow"><SearchBar
+            mine={mine}
+            owned={(r) => (open.items.some((i) => i.name.toLowerCase() === r.name.toLowerCase() && i.kind === r.kind && (!i.year || !r.year || i.year === r.year)) ? { label: 'In this list', done: true } : null)}
+            onPick={(t) => addItem(open.id, t)}
+          /></div>
           <button onClick={() => setAdding(false)}>Done</button>
         </div>
       ) : (

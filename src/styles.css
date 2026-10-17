@@ -390,3 +390,8 @@ a.buttonlink { border-radius: 10px; padding: 8px 12px; }
 .aboutline { margin-top: 14px; }
 
 .credits { margin-top: 6px; font-size: 12px; line-height: 1.5; }
+
+/* Search: titles you already have */
+.owned-badge { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.owned-badge .tick { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--line); color: var(--fg); font-size: 11px; }
+.results li.added:has(.owned-badge) { background: transparent; opacity: .8; }

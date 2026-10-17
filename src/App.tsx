@@ -242,7 +242,18 @@ export default function App() {
       </aside>
 
       <section className="content">
-      {filter !== 'lists' && <SearchBar mine={filter === 'want' ? [] : undefined} onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))} />}
+      {filter !== 'lists' && (
+        <SearchBar
+          mine={filter === 'want' ? [] : undefined}
+          owned={(r) => {
+            const t = titles.find((x) => x.name.toLowerCase() === r.name.toLowerCase() && x.kind === r.kind && (!x.year || !r.year || x.year === r.year));
+            if (!t) return null;
+            if (filter === 'want') return onWatchlist(t) ? { label: 'On your watchlist', done: true } : { label: 'Watched', done: false };
+            return t.status === 'want' ? { label: 'On your watchlist', done: false } : { label: 'In your list', done: true };
+          }}
+          onPick={(t) => (filter === 'want' ? addWant(t) : logWatch(t))}
+        />
+      )}
       {filter === 'want' && wants.length > 0 && <p className="hint">Search above to add something you want to watch.</p>}
 
       {filter === 'lists' ? <Lists store={lists} mine={watched} openId={openListId} setOpenId={setOpenListId} share={shareProps}
